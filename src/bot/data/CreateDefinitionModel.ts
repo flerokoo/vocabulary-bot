@@ -15,9 +15,9 @@ export class CreateDefinitionModel extends DataHolder<CreateDefinitionModelData>
         this.setState({...this.data, meanings: newMeanings});
     }
 
-    addDefinition(meaning: IMeaning) {
+    addDefinition(meaning: IMeaning, use = true) {
         const newMeanings = this.data.meanings.map(m => ({...m}));
-        newMeanings.push({...meaning, use: false});
+        newMeanings.push({...meaning, use});
         this.setState({...this.data, meanings: newMeanings});
     }
 

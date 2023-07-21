@@ -24,6 +24,8 @@ export class TelegramCreateDefinitionView implements ICreateDefinitionView {
 
     async showDefinitions(meanings: CreateDefinitionStateMeaning[]) {
         const {message, reply_markup} = this.formatMessage(meanings);
+
+        // add continue button if some of the definitions selected
         if (meanings.some(m => m.use))
             reply_markup.inline_keyboard.push([{
                 text: "Save",
@@ -42,7 +44,7 @@ export class TelegramCreateDefinitionView implements ICreateDefinitionView {
     }
 
     private formatMessage(meanings: CreateDefinitionStateMeaning[], buttonsPerRow = 3): { message: string, reply_markup: InlineKeyboardMarkup } {
-        const header = `List of dictionary definitions available. \nWrite a message(s) to add new definition(s) manually \n\n`;
+        const header = `*List of dictionary definitions available. \nWrite a message(s) to add new definition(s) manually* \n\n`;
         const messages = meanings.map((m, i) => `${i + 1}) ${m.definition}`);
         const message = header + messages.join("\n\n")
         const buttons: InlineKeyboardButton[][] = [];

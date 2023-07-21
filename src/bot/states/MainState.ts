@@ -7,11 +7,23 @@ import {BotDependencies} from "../create-bot";
 
 export type MainStatePayload = void;
 
+const HELP_MESSAGE = `
+Use this bot and [Anki](https://en.wikipedia.org/wiki/Anki_%28software%29) to learn new english words.
+To start just *send the word you want to add to your dictionary as a message*.
+
+Available commands:
+/help — to show this message
+/list — to list all words in your dictionary
+/export — to export your dictionary as an Anki deck
+/define _word_ — to add definitions to the word
+/remove _word_ — to remove the work from your dictionary
+`
 
 export class MainState extends AbstractState<BotStateId, MainStatePayload, CreateDefinitionStatePayload> {
 
     commands: { [key: string]: Function } = {
-        "/start": () => this.context.sendMessage("/start message reply!"),
+        "/start": () => this.context.sendMessage(HELP_MESSAGE, {parse_mode: "Markdown", disable_web_page_preview: true}),
+        "/help": () => this.context.sendMessage(HELP_MESSAGE, {parse_mode: "Markdown", disable_web_page_preview: true}),
         "/manage": (word: string) => this.context.setState("create-definition", {word, isNewWord: false}),
         "/list": async () => {
             const header = "*List of your saved words:* \n"

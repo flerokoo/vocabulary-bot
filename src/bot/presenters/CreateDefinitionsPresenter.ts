@@ -21,13 +21,12 @@ export class CreateDefinitionsPresenter implements ICreateDefinitionPresenter {
         await this.view.showLoader();
         if (payload.isNewWord) {
             const defs = await this.deps.defProvider(payload.word);
-            await this.view.hideLoader()
             this.model.setDefinitions(defs);
         } else {
-            await this.view.showLoader();
             const defs = await this.deps.defRepo.getByWord(payload.word, userId)
             this.model.setDefinitions(defs);
         }
+        await this.view.hideLoader()
     }
 
     toggleDefinitionUsage(data: string): void {
