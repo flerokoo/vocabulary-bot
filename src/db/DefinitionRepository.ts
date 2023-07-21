@@ -11,7 +11,7 @@ export class DefinitionRepository implements IDefinitionRepository {
     definition: string,
     example?: string,
   ): Promise<void> {
-    return new Promise((resolve, _) => {
+    return new Promise((resolve) => {
       const callback = (result: any, err: any) => {
         if (err) throw new Error();
         resolve();
@@ -22,7 +22,7 @@ export class DefinitionRepository implements IDefinitionRepository {
   }
 
   getAll(userId: string): Promise<IMeaning[]> {
-    return new Promise((resolve, _) => {
+    return new Promise((resolve) => {
       const callback = (err: any, result: any) => {
         if (err) throw new Error();
         resolve(result as IMeaning[]);
@@ -33,7 +33,7 @@ export class DefinitionRepository implements IDefinitionRepository {
   }
 
   getByWordId(wordId: number, userId: string): Promise<IMeaning[]> {
-    return new Promise((resolve, _) => {
+    return new Promise((resolve) => {
       const callback = (err: any, result: any) => {
         if (err) throw new Error();
         console.log(result);

@@ -8,7 +8,7 @@ export abstract class AbstractState<
 > {
   context!: BotContext<TStateKey, TOutgoingPayload>;
 
-  constructor() {}
+  protected constructor() {}
 
   abstract enter(payload: TIncomingPayload): void;
 

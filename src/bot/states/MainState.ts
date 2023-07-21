@@ -24,6 +24,7 @@ export class MainState extends AbstractState<
   MainStatePayload,
   CreateDefinitionStatePayload
 > {
+  // eslint-disable-next-line @typescript-eslint/ban-types
   commands: { [key: string]: Function } = {
     "/start": () =>
       this.context.sendMessage(HELP_MESSAGE, {
@@ -54,7 +55,7 @@ export class MainState extends AbstractState<
     super();
   }
 
-  enter(payload: MainStatePayload) {}
+  enter() {}
 
   exit() {}
 
@@ -77,5 +78,5 @@ export class MainState extends AbstractState<
     this.commands[command](...args);
   }
 
-  handleCallbackQuery(query: TelegramBot.CallbackQuery): void {}
+  handleCallbackQuery(): void {}
 }
