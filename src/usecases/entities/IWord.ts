@@ -1,7 +1,6 @@
-import {SanitizedWordString} from "../../utils/sanitize";
+import { SanitizedWordString } from "../../utils/sanitize";
 
 export interface IWord {
-    id: number,
-    word: SanitizedWordString,
+  id: number;
+  word: SanitizedWordString;
 }
-

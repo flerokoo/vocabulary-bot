@@ -1,14 +1,13 @@
-import {CreateDefinitionStatePayload} from "../states/CreateDefinitionState";
+import { CreateDefinitionStatePayload } from "../states/CreateDefinitionState";
 
 export interface ICreateDefinitionPresenter {
+  onShow(payload: CreateDefinitionStatePayload, userId: string): void;
 
-    onShow(payload: CreateDefinitionStatePayload, userId: string): void;
+  addDefinition(text: string): void;
 
-    addDefinition(text: string): void;
+  toggleDefinitionUsage(data: string | undefined): void;
 
-    toggleDefinitionUsage(data: string | undefined): void;
+  reset(): void;
 
-    reset(): void;
-
-    onContinue(): void;
+  onContinue(): void;
 }

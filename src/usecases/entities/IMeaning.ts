@@ -1,3 +1,3 @@
 export interface IMeaning {
-    definition: string
+  definition: string;
 }
