@@ -24,7 +24,7 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
     commands: { [key: string]: Function } = {
         "/start": () => this.context.sendMessage(HELP_MESSAGE, {parse_mode: "Markdown", disable_web_page_preview: true}),
         "/help": () => this.context.sendMessage(HELP_MESSAGE, {parse_mode: "Markdown", disable_web_page_preview: true}),
-        "/manage": (word: string) => this.context.setState("create-definition", {word, isNewWord: false}),
+        "/define": (word: string) => this.context.setState("create-definition", {word, isNewWord: false}),
         "/list": async () => {
             const header = "*List of your saved words:* \n"
             const words = await this.deps.wordRepo.getAll(this.context.chatId.toString());

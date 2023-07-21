@@ -24,7 +24,8 @@ export class CreateDefinitionsPresenter implements ICreateDefinitionPresenter {
             this.model.setDefinitions(defs);
         } else {
             const defs = await this.deps.defRepo.getByWord(payload.word, userId)
-            this.model.setDefinitions(defs);
+            const defsUsed = defs.map(d => ({...d, use: true}));
+            this.model.setDefinitions(defsUsed);
         }
         await this.view.hideLoader()
     }
@@ -45,9 +46,15 @@ export class CreateDefinitionsPresenter implements ICreateDefinitionPresenter {
         // move this to use case
         const {meanings, userId, word} = this.model.data;
         const existing = await this.deps.wordRepo.getByText(word, userId);
-        console.log(existing)
 
-        const wordId = await this.deps.wordRepo.add(word, userId);
+
+        let wordId: number;
+        if (existing) {
+            wordId = existing.id;
+        } else {
+            wordId = await this.deps.wordRepo.add(word, userId);
+        }
+
         const promises = meanings
             .filter(m => m.use)
             .map(m => this.deps.defRepo.add(wordId, userId, m.definition, ""));

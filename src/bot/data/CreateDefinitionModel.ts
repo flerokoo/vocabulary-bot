@@ -7,16 +7,16 @@ export type CreateDefinitionModelData = { meanings: CreateDefinitionStateMeaning
 
 export class CreateDefinitionModel extends DataHolder<CreateDefinitionModelData> {
 
-    setDefinitions(meanings: IMeaning[]) {
+    setDefinitions(meanings: IMeaning[] | CreateDefinitionStateMeaning[]) {
         const newMeanings = meanings.map(m => ({
-            ...m,
-            use: false
+            use: false,
+            ...m
         }));
         this.setState({...this.data, meanings: newMeanings});
     }
 
     addDefinition(meaning: IMeaning, use = true) {
-        const newMeanings = this.data.meanings.map(m => ({...m}));
+        const newMeanings = this.data?.meanings ? this.data.meanings.map(m => ({...m})) : [];
         newMeanings.push({...meaning, use});
         this.setState({...this.data, meanings: newMeanings});
     }
@@ -30,6 +30,7 @@ export class CreateDefinitionModel extends DataHolder<CreateDefinitionModelData>
     }
 
     toggleDefinitionUsage(i: number) {
+        if (!this.data?.meanings?.length) return;
         if (isNaN(i)) return;
         if (i < 0 || i >= this.data.meanings.length) return;
         const obj = this.data.meanings[i];
