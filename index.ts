@@ -1,5 +1,4 @@
 import getFromDictionaryApi from "./src/dict/get-from-dictionaryapi";
-import {sanitize} from "./src/utils/sanitize";
 import {initDb} from "./src/db/init-db";
 import {createBot} from "./src/bot/create-bot";
 
@@ -7,7 +6,9 @@ import {createBot} from "./src/bot/create-bot";
     const {wordRepository, defRepository} = await initDb()
 
     await createBot("6360199578:AAE06Qmpb1H9sh9UZ8HCWl19vvINpTIPBZ4", {
-        defProvider: getFromDictionaryApi
+        defProvider: getFromDictionaryApi,
+        wordRepo: wordRepository,
+        defRepo : defRepository
     })
 
 

@@ -1,13 +1,6 @@
 import TelegramBot, {CallbackQuery, ChatId, SendMessageOptions} from 'node-telegram-bot-api'
-import {MainState} from "./states/MainState";
-import {CreateDefinitionState, CreateDefinitionStatePayload} from "./states/CreateDefinitionState";
 import {BotContext} from "./BotContext";
-import IWordDefinitionProvider from "../usecases/IWordDefinitionProvider";
 
-
-export type BotDependencies = {
-    defProvider: IWordDefinitionProvider
-}
 
 export interface ContextConfigurator<T extends string, K> {
     (ctx: BotContext<T, K>): void;

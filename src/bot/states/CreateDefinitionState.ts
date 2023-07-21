@@ -1,90 +1,47 @@
 import {AbstractState} from "./AbstractState";
-import TelegramBot, {EditMessageTextOptions} from "node-telegram-bot-api";
-import IWordDefinitionProvider from "../../usecases/IWordDefinitionProvider";
+import TelegramBot from "node-telegram-bot-api";
 import {BotStateId} from "./BotStateId";
+import {PayloadUnion} from "../create-bot";
+import {ICreateDefinitionPresenter} from "../presenters/ICreateDefinitionPresenter";
+
+export const CONTINUE_QUERY_DATA = 'continue';
 
 export type CreateDefinitionStatePayload = {
-    readonly word: string
+    readonly word: string,
+    readonly isNewWord: boolean
 }
 
-interface ICreateDefinitionController {
 
-}
-
-interface ICreateDefinitionView {
-
-}
-
-interface ICreateDefinitionPresenter {
-
-}
-
-let aa = 0;
-let bb = 0;
-
-export class CreateDefinitionState extends AbstractState<BotStateId, CreateDefinitionStatePayload> {
-
-    message! : TelegramBot.Message;
+export class CreateDefinitionState extends AbstractState<BotStateId, CreateDefinitionStatePayload, PayloadUnion> {
 
     constructor(
-        private defProvider: IWordDefinitionProvider
+        private presenter: ICreateDefinitionPresenter,
     ) {
         super();
     }
 
     async enter(payload: CreateDefinitionStatePayload) {
-        const loader = await this.context.sendMessage("Retrieving definitions...")
-        const meanings = await this.defProvider(payload.word)
-        await this.context.deleteMessage(loader.chat.id, loader.message_id)
-        this.message = await this.context.sendMessage(meanings[0].definition, {
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        {
-                            text: aa.toString(),
-                            callback_data: "1"
-                        },
-                        {
-                            text: bb.toString(),
-                            callback_data: "2"
-                        }
-                    ]
-                ]
-            }
-        })
+        this.presenter.onShow(payload, this.context.chatId.toString());
     }
 
     exit() {
+        this.presenter.reset();
     }
 
     async handleMessage(message: TelegramBot.Message) {
-        this.context.sendMessage("What")
+        if (!message.text) return;
+        if (message.text.length === 0) return;
+        this.presenter.addDefinition(message.text);
     }
 
-    handleCallbackQuery(query: TelegramBot.CallbackQuery): void {
-        if (query.data == "1") {
-            aa ++
-        } else {
-            bb++;
+    async handleCallbackQuery(query: TelegramBot.CallbackQuery) {
+        if (query.data === CONTINUE_QUERY_DATA) {
+            await this.presenter.onContinue();
+            this.context.setState("main");
+            return;
         }
 
-
-        this.context.editMessageReplyMarkup({
-            inline_keyboard: [
-                [
-                    {
-                        text: aa.toString(),
-                        callback_data: "1"
-                    },
-                    {
-                        text: bb.toString(),
-                        callback_data: "2"
-                    }
-                ]
-            ]
-        }, {
-            message_id: this.message.message_id
-        })
+        this.presenter.toggleDefinitionUsage(query.data)
     }
 
 }

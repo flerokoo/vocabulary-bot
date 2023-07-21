@@ -1,17 +1,16 @@
 import {AbstractState} from "./states/AbstractState";
 import TelegramBot, {ChatId, SendMessageOptions} from "node-telegram-bot-api";
-import {BotStateId} from "./states/BotStateId";
 import {Bot} from "./Bot";
 
 export class BotContext<TStateKey extends string, TPayload> {
-    private states: { [key: string]: AbstractState<TStateKey, TPayload> } = {};
-    private currentState!: AbstractState<TStateKey, any>
+    private states: { [key: string]: AbstractState<TStateKey, any, any> } = {};
+    private currentState!: AbstractState<TStateKey, any, any>
 
     constructor(public readonly bot: Bot<TStateKey, TPayload>, public readonly chatId: ChatId) {
 
     }
 
-    addState(id: TStateKey, state: AbstractState<TStateKey, TPayload>) {
+    addState(id: TStateKey, state: AbstractState<TStateKey, TPayload, TPayload>) {
         if (id in this.states) throw new Error(`State ${id} exists`);
         this.states[id] = state;
         state.context = this;
@@ -36,8 +35,8 @@ export class BotContext<TStateKey extends string, TPayload> {
         return this.bot.sendMessage(this.chatId, message, options)
     }
 
-    deleteMessage(chatId: ChatId, messageId: number, options?: any) {
-        return this.bot.deleteMessage(chatId, messageId, options)
+    deleteMessage(messageId: number, options?: any) {
+        return this.bot.deleteMessage(this.chatId, messageId, options)
     }
 
     onCallbackQuery(query: TelegramBot.CallbackQuery) {

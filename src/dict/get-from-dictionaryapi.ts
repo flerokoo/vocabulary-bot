@@ -1,5 +1,5 @@
 import {NO_WORD} from "../error-messages";
-import {IMeaning} from "../entities/IMeaning";
+import {IMeaning} from "../usecases/entities/IMeaning";
 
 type DictApiDefinition = {
     definition: string,
@@ -20,8 +20,8 @@ function getUrl(word: string) {
 function isCorrectResponse(obj: unknown): obj is DictApiResponse {
     if (!Array.isArray(obj) || obj.length === 0) return false;
     if (!("meanings" in obj)) return false;
-    if (!Array.isArray(obj["meanings"])) return false;
-    return true;
+    return Array.isArray(obj["meanings"]);
+
 }
 
 export default async function getFromDictionaryApi(word: string) {
@@ -40,8 +40,7 @@ export default async function getFromDictionaryApi(word: string) {
         for (const meaning of el.meanings) {
             for (const def of meaning.definitions) {
                 meanings.push({
-                    definition: def.definition,
-                    example: def.example || ""
+                    definition: `[${meaning.partOfSpeech}] ${def.definition}`
                 })
             }
         }

@@ -1,8 +1,6 @@
-import {IWordRepository} from "../usecases/IWordRepository";
-import {IWord} from "../entities/IWord";
 import {Database} from "sqlite3";
 import {IDefinitionRepository} from "../usecases/IDefinitionRepository";
-import {IMeaning} from "../entities/IMeaning";
+import {IMeaning} from "../usecases/entities/IMeaning";
 
 export class DefinitionRepository implements IDefinitionRepository {
 
@@ -11,7 +9,7 @@ export class DefinitionRepository implements IDefinitionRepository {
     }
 
     add(wordId: number, userId: string, definition: string, example?: string): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _) => {
             const callback = (result: any, err: any) => {
                 if (err) throw new Error()
                 resolve()
@@ -22,7 +20,7 @@ export class DefinitionRepository implements IDefinitionRepository {
     }
 
     getAll(userId: string): Promise<IMeaning[]> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _) => {
             const callback = (err: any, result: any) => {
                 if (err) throw new Error()
                 resolve(result as IMeaning[])
@@ -32,8 +30,8 @@ export class DefinitionRepository implements IDefinitionRepository {
         });
     }
 
-    getForWord(wordId: number, userId: string): Promise<IMeaning[]> {
-        return new Promise((resolve, reject) => {
+    getByWordId(wordId: number, userId: string): Promise<IMeaning[]> {
+        return new Promise((resolve, _) => {
             const callback = (err: any, result: any) => {
                 if (err) throw new Error()
                 console.log(result)
@@ -42,6 +40,10 @@ export class DefinitionRepository implements IDefinitionRepository {
             const query = `SELECT * FROM Definitions WHERE userId=${userId} AND word=${wordId}`;
             this.db.all(query, callback)
         });
+    }
+
+    getByWord(word: string, userId: string): Promise<IMeaning[]> {
+        return Promise.resolve([]);
     }
 
     //
