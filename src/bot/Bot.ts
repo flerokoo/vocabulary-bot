@@ -52,12 +52,12 @@ export class Bot<TStateKey extends string, TPayload> {
 
   editMessageReplyMarkup(
     replyMarkup: TelegramBot.InlineKeyboardMarkup,
-    options?: TelegramBot.EditMessageReplyMarkupOptions
+    options?: TelegramBot.EditMessageReplyMarkupOptions,
   ) {
     return this.tg.editMessageReplyMarkup(replyMarkup, options);
   }
 
-  answerCallbackQuery(queryId: string,  options?: TelegramBot.AnswerCallbackQueryOptions) {
-    return this.tg.answerCallbackQuery(queryId, options)
+  answerCallbackQuery(queryId: string, options?: TelegramBot.AnswerCallbackQueryOptions) {
+    return this.tg.answerCallbackQuery(queryId, options);
   }
 }

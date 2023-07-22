@@ -42,8 +42,7 @@ export class DefinitionRepository implements IDefinitionRepository {
   }
 
   remove(id: number, userId: string) {
-    this.removeQuery.run([id, userId])
+    this.removeQuery.run([id, userId]);
     return Promise.resolve();
   }
-
 }

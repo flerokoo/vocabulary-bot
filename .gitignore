@@ -353,3 +353,4 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/node,webstorm,visualstudiocode,intellij
 /.idea/vcs.xml
+/db.sqlite-journal

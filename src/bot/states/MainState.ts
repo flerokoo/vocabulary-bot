@@ -26,12 +26,12 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
     "/start": () =>
       this.context.sendMessage(HELP_MESSAGE, {
         parse_mode: "Markdown",
-        disable_web_page_preview: true
+        disable_web_page_preview: true,
       }),
     "/help": () =>
       this.context.sendMessage(HELP_MESSAGE, {
         parse_mode: "Markdown",
-        disable_web_page_preview: true
+        disable_web_page_preview: true,
       }),
     "/list": async () => {
       const header = "*List of your saved words:* \n";
@@ -39,21 +39,19 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
       const msg = words.length === 0 ? "No saved words found" : header + words.map((w) => w.word).join("\n");
       await this.context.sendMessage(msg, { parse_mode: "Markdown" });
     },
-    "/remove": async (word : string) => {
+    "/remove": async (word: string) => {
       await this.deps.wordRepo.removeByText(word, this.context.chatId.toString());
       await this.context.sendMessage("Removed this word from your dictionary");
-    }
+    },
   };
 
   constructor(private deps: BotDependencies) {
     super();
   }
 
-  enter() {
-  }
+  enter() {}
 
-  exit() {
-  }
+  exit() {}
 
   async handleMessage(message: TelegramBot.Message) {
     if (!message.text) return;
@@ -79,8 +77,7 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
     this.commands[command](...args);
   }
 
-  handleCallbackQuery(): void {
-  }
+  handleCallbackQuery(): void {}
 
   private defineWord(word: string) {
     this.context.setState("create-definition", { word, isNewWord: false });

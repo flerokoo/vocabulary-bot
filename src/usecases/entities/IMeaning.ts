@@ -1,4 +1,4 @@
 export interface IMeaning {
-  id? : number,
-  definition: string;
+  readonly id?: number;
+  readonly definition: string;
 }

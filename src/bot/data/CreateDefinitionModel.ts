@@ -1,16 +1,17 @@
 import { DataHolder } from "../../utils/data/DataHolder";
 import { IMeaning } from "../../usecases/entities/IMeaning";
+import { SanitizedWordString } from "../../utils/sanitize";
 
 export interface CreateDefinitionStateMeaning extends IMeaning {
-  use: boolean, // selected during create definition process
-  fromDb? : boolean // exists in database
+  use: boolean; // selected during create definition process
+  fromDb?: boolean; // exists in database
 }
 
 export type CreateDefinitionModelData = {
   meanings: CreateDefinitionStateMeaning[];
-  word: string;
+  word: SanitizedWordString;
   userId: string;
-}
+};
 
 export class CreateDefinitionModel extends DataHolder<CreateDefinitionModelData> {
   setDefinitions(meanings: IMeaning[] | CreateDefinitionStateMeaning[]) {

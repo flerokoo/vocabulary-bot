@@ -7,5 +7,5 @@ export interface IWordRepository {
 
   getByText(word: string, userId: string): Promise<IWord | null>;
 
-  removeByText(word : string, userId : string) : Promise<void>;
+  removeByText(word: string, userId: string): Promise<void>;
 }

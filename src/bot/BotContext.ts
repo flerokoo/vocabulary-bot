@@ -61,7 +61,7 @@ export class BotContext<TStateKey extends string, TPayload> {
     });
   }
 
-  answerCallbackQuery(queryId: string,  options?: TelegramBot.AnswerCallbackQueryOptions) {
-    return this.bot.answerCallbackQuery(queryId, options)
+  answerCallbackQuery(queryId: string, options?: TelegramBot.AnswerCallbackQueryOptions) {
+    return this.bot.answerCallbackQuery(queryId, options);
   }
 }

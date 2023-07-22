@@ -12,7 +12,7 @@ export class WordRepository implements IWordRepository {
     this.addQuery = db.prepare(`INSERT INTO Words (word, userId) VALUES (?, ?)`);
     this.getByTextQuery = db.prepare(`SELECT * FROM Words WHERE userId=? AND word=? LIMIT 1`);
     this.getAllQuery = db.prepare(`SELECT * FROM Words WHERE userId=?`);
-    this.removeByTextQuery = db.prepare(`DELETE FROM Words WHERE word=? AND userId=?`)
+    this.removeByTextQuery = db.prepare(`DELETE FROM Words WHERE word=? AND userId=?`);
   }
 
   add(word: string, userId: string): Promise<number> {
