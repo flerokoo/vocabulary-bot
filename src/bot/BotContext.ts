@@ -39,7 +39,7 @@ export class BotContext<TStateKey extends string, TPayload> {
     return this.bot.deleteMessage(this.chatId, messageId, options);
   }
 
-  onCallbackQuery(query: TelegramBot.CallbackQuery) {
+  onCallbacKQuery(query: TelegramBot.CallbackQuery) {
     if (!this.currentState) return;
     this.currentState.handleCallbackQuery(query);
   }
@@ -59,5 +59,9 @@ export class BotContext<TStateKey extends string, TPayload> {
       ...options,
       chat_id: this.chatId,
     });
+  }
+
+  answerCallbackQuery(queryId: string,  options?: TelegramBot.AnswerCallbackQueryOptions) {
+    return this.bot.answerCallbackQuery(queryId, options)
   }
 }

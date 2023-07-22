@@ -3,9 +3,7 @@ export interface Subscription {
 }
 
 export abstract class Observable<TEvent> {
-  private readonly observers: Set<(value: TEvent) => void> = new Set<
-    (value: TEvent) => void
-  >();
+  private readonly observers: Set<(value: TEvent) => void> = new Set<(value: TEvent) => void>();
 
   public subscribe(callback: (x: TEvent) => void): Subscription {
     this.observers.add(callback);

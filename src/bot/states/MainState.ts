@@ -19,55 +19,52 @@ Available commands:
 /remove _word_ — to remove the work from your dictionary
 `;
 
-export class MainState extends AbstractState<
-  BotStateId,
-  MainStatePayload,
-  CreateDefinitionStatePayload
-> {
+export class MainState extends AbstractState<BotStateId, MainStatePayload, CreateDefinitionStatePayload> {
   // eslint-disable-next-line @typescript-eslint/ban-types
   commands: { [key: string]: Function } = {
     "/start": () =>
       this.context.sendMessage(HELP_MESSAGE, {
         parse_mode: "Markdown",
-        disable_web_page_preview: true,
+        disable_web_page_preview: true
       }),
     "/help": () =>
       this.context.sendMessage(HELP_MESSAGE, {
         parse_mode: "Markdown",
-        disable_web_page_preview: true,
+        disable_web_page_preview: true
       }),
-    "/define": (word: string) =>
-      this.context.setState("create-definition", { word, isNewWord: false }),
+    "/define": (word: string) => this.defineWord(word),
     "/list": async () => {
       const header = "*List of your saved words:* \n";
-      const words = await this.deps.wordRepo.getAll(
-        this.context.chatId.toString(),
-      );
-      const msg =
-        words.length === 0
-          ? "No saved words found"
-          : header + words.map((w) => w.word).join("\n");
+      const words = await this.deps.wordRepo.getAll(this.context.chatId.toString());
+      const msg = words.length === 0 ? "No saved words found" : header + words.map((w) => w.word).join("\n");
       await this.context.sendMessage(msg, { parse_mode: "Markdown" });
-    },
+    }
   };
 
   constructor(private deps: BotDependencies) {
     super();
   }
 
-  enter() {}
+  enter() {
+  }
 
-  exit() {}
+  exit() {
+  }
 
-  handleMessage(message: TelegramBot.Message) {
+  async handleMessage(message: TelegramBot.Message) {
     if (!message.text) return;
     if (message.text?.startsWith("/") && message.text.length > 1) {
       this.handleCommand(message);
       return;
     }
     const word = sanitize(message.text);
-    if (word.length > 0)
-      this.context.setState("create-definition", { word, isNewWord: true });
+    if (word.length === 0) return;
+    const dbWord = await this.deps.wordRepo.getByText(word, this.context.chatId.toString());
+    if (dbWord) {
+      this.defineWord(word);
+    } else {
+      this.createAndDefineWord(word);
+    }
   }
 
   private handleCommand(message: TelegramBot.Message) {
@@ -78,5 +75,14 @@ export class MainState extends AbstractState<
     this.commands[command](...args);
   }
 
-  handleCallbackQuery(): void {}
+  handleCallbackQuery(): void {
+  }
+
+  private defineWord(word: string) {
+    this.context.setState("create-definition", { word, isNewWord: false });
+  }
+
+  private createAndDefineWord(word: string) {
+    this.context.setState("create-definition", { word, isNewWord: true });
+  }
 }

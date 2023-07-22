@@ -1,73 +1,41 @@
-import { Database } from "sqlite3";
 import { IDefinitionRepository } from "../usecases/IDefinitionRepository";
 import { IMeaning } from "../usecases/entities/IMeaning";
+import * as BetterSqlite3 from "better-sqlite3";
 
 export class DefinitionRepository implements IDefinitionRepository {
-  constructor(private readonly db: Database) {}
+  private addQuery: BetterSqlite3.Statement<unknown[]>;
+  private getAllQuery: BetterSqlite3.Statement<unknown[]>;
+  private getByWordIdQuery: BetterSqlite3.Statement<unknown[]>;
+  private getByWordQuery: BetterSqlite3.Statement<unknown[]>;
 
-  add(
-    wordId: number,
-    userId: string,
-    definition: string,
-    example?: string,
-  ): Promise<void> {
-    return new Promise((resolve) => {
-      const callback = (result: any, err: any) => {
-        if (err) throw new Error();
-        resolve();
-      };
-      const query = `INSERT INTO Definitions (word, definition, example, userId) VALUES (?, ?, ?, ?)`;
-      this.db.run(query, [wordId, definition, example, userId], callback);
-    });
+  constructor(private readonly db: BetterSqlite3.Database) {
+    this.addQuery = db.prepare(`INSERT INTO Definitions (word, definition, example, userId) VALUES (?, ?, ?, ?)`);
+    this.getAllQuery = db.prepare(`SELECT * FROM Definitions WHERE userId=?`);
+    this.getByWordIdQuery = db.prepare(`SELECT * FROM Definitions WHERE userId=? AND word=?`);
+    this.getByWordQuery = db.prepare(`SELECT * FROM Definitions WHERE id IN 
+        (SELECT id FROM Words WHERE word=? AND userId=?)`);
+    // SELECT D.* FROM Definitions AS D
+    //      LEFT JOIN Words AS W
+    //      ON D.word = W.id AND W.word=?
+  }
+
+  add(wordId: number, userId: string, definition: string, example?: string): Promise<void> {
+    this.addQuery.run([wordId, definition, example, userId]);
+    return Promise.resolve();
   }
 
   getAll(userId: string): Promise<IMeaning[]> {
-    return new Promise((resolve) => {
-      const callback = (err: any, result: any) => {
-        if (err) throw new Error();
-        resolve(result as IMeaning[]);
-      };
-      const query = `SELECT * FROM Definitions WHERE userId=${userId}`;
-      this.db.all(query, callback);
-    });
+    const result = this.getAllQuery.all([userId]);
+    return Promise.resolve(result as IMeaning[]);
   }
 
-  getByWordId(wordId: number, userId: string): Promise<IMeaning[]> {
-    return new Promise((resolve) => {
-      const callback = (err: any, result: any) => {
-        if (err) throw new Error();
-        console.log(result);
-        resolve(result as IMeaning[]);
-      };
-      const query = `SELECT * FROM Definitions WHERE userId=${userId} AND word=${wordId}`;
-      this.db.all(query, callback);
-    });
+  getAllByWordId(wordId: number, userId: string): Promise<IMeaning[]> {
+    const result = this.getByWordIdQuery.all([userId, wordId]);
+    return Promise.resolve(result as IMeaning[]);
   }
 
-  getByWord(word: string, userId: string): Promise<IMeaning[]> {
-    return Promise.resolve([]);
+  getAllByWord(word: string, userId: string): Promise<IMeaning[]> {
+    const result = this.getByWordQuery.all([word, userId]);
+    return Promise.resolve(result as IMeaning[]);
   }
-
-  //
-  // add(word: string, userId: string): Promise<void> {
-  //     return new Promise((resolve, reject) => {
-  //         const callback = (result: any, err: any) => {
-  //             if (err) throw new Error()
-  //             resolve()
-  //         };
-  //         const query = `INSERT INTO Words (word, userId) VALUES (?, ?)`;
-  //         this.db.run(query, [word, userId], callback)
-  //     });
-  // }
-  //
-  // getAll(userId: string): Promise<IWord[]> {
-  //     return new Promise((resolve, reject) => {
-  //         const callback = (err: any, result: any) => {
-  //             if (err) throw new Error()
-  //             resolve(result)
-  //         };
-  //         const query = `SELECT * FROM Words WHERE userId='${userId}'`;
-  //         this.db.all(query, callback)
-  //     });
-  // }
 }

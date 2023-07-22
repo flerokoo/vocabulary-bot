@@ -28,10 +28,10 @@ export default async function getFromDictionaryApi(word: string) {
   const response = await fetch(url);
   const json: unknown = await response.json();
 
-  if (isCorrectResponse(json)) throw new Error(NO_WORD);
+  if (!isCorrectResponse(json)) return [];
 
   const checked = json as DictApiResponse;
-
+  console.log(checked)
   const meanings: IMeaning[] = [];
   for (const el of checked) {
     for (const meaning of el.meanings) {

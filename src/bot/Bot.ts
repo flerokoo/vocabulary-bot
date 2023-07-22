@@ -1,8 +1,4 @@
-import TelegramBot, {
-  CallbackQuery,
-  ChatId,
-  SendMessageOptions,
-} from "node-telegram-bot-api";
+import TelegramBot, { CallbackQuery, ChatId, InlineQuery, SendMessageOptions } from "node-telegram-bot-api";
 import { BotContext } from "./BotContext";
 
 export interface ContextConfigurator<T extends string, K> {
@@ -14,15 +10,9 @@ export class Bot<TStateKey extends string, TPayload> {
   private readonly contexts: {
     [key: ChatId]: BotContext<TStateKey, TPayload>;
   } = {};
-  private readonly contextConfigurator: ContextConfigurator<
-    TStateKey,
-    TPayload
-  >;
+  private readonly contextConfigurator: ContextConfigurator<TStateKey, TPayload>;
 
-  constructor(
-    token: string,
-    contextConfigurator: ContextConfigurator<TStateKey, TPayload>,
-  ) {
+  constructor(token: string, contextConfigurator: ContextConfigurator<TStateKey, TPayload>) {
     this.tg = new TelegramBot(token, { polling: true });
     this.tg.on("message", (msg) => this.onMessage(msg));
     this.tg.on("callback_query", (query) => this.onCallbackQuery(query));
@@ -34,7 +24,7 @@ export class Bot<TStateKey extends string, TPayload> {
   }
 
   private onCallbackQuery(query: CallbackQuery) {
-    this.getContext(query.message!.chat.id).onCallbackQuery(query);
+    this.getContext(query.from.id).onCallbacKQuery(query);
   }
 
   private createContext(chatId: ChatId) {
@@ -62,8 +52,12 @@ export class Bot<TStateKey extends string, TPayload> {
 
   editMessageReplyMarkup(
     replyMarkup: TelegramBot.InlineKeyboardMarkup,
-    options?: TelegramBot.EditMessageReplyMarkupOptions,
+    options?: TelegramBot.EditMessageReplyMarkupOptions
   ) {
     return this.tg.editMessageReplyMarkup(replyMarkup, options);
+  }
+
+  answerCallbackQuery(queryId: string,  options?: TelegramBot.AnswerCallbackQueryOptions) {
+    return this.tg.answerCallbackQuery(queryId, options)
   }
 }

@@ -5,17 +5,14 @@ import { PayloadUnion } from "../create-bot";
 import { ICreateDefinitionPresenter } from "../presenters/ICreateDefinitionPresenter";
 
 export const CONTINUE_QUERY_DATA = "continue";
+export const CANCEL_QUERY_DATA = "cancel";
 
 export type CreateDefinitionStatePayload = {
   readonly word: string;
   readonly isNewWord: boolean;
 };
 
-export class CreateDefinitionState extends AbstractState<
-  BotStateId,
-  CreateDefinitionStatePayload,
-  PayloadUnion
-> {
+export class CreateDefinitionState extends AbstractState<BotStateId, CreateDefinitionStatePayload, PayloadUnion> {
   constructor(private presenter: ICreateDefinitionPresenter) {
     super();
   }
@@ -35,12 +32,23 @@ export class CreateDefinitionState extends AbstractState<
   }
 
   async handleCallbackQuery(query: TelegramBot.CallbackQuery) {
+    const answer = (text: string) => this.context.answerCallbackQuery(query.id, { text, callback_query_id: query.id });
+
     if (query.data === CONTINUE_QUERY_DATA) {
       await this.presenter.onContinue();
+      await this.context.sendMessage(`Word saved`);
+      this.context.setState("main");
+      await answer("Saved successfully");
+      return;
+    }
+
+    if (query.data === CANCEL_QUERY_DATA) {
+      await answer("Cancelled");
       this.context.setState("main");
       return;
     }
 
     this.presenter.toggleDefinitionUsage(query.data);
+    await answer("Toggled");
   }
 }

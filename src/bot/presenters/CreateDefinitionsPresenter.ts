@@ -23,7 +23,7 @@ export class CreateDefinitionsPresenter implements ICreateDefinitionPresenter {
       const defs = await this.deps.defProvider(payload.word);
       this.model.setDefinitions(defs);
     } else {
-      const defs = await this.deps.defRepo.getByWord(payload.word, userId);
+      const defs = await this.deps.defRepo.getAllByWord(payload.word, userId);
       const defsUsed = defs.map((d) => ({ ...d, use: true }));
       this.model.setDefinitions(defsUsed);
     }
@@ -54,9 +54,7 @@ export class CreateDefinitionsPresenter implements ICreateDefinitionPresenter {
       wordId = await this.deps.wordRepo.add(word, userId);
     }
 
-    const promises = meanings
-      .filter((m) => m.use)
-      .map((m) => this.deps.defRepo.add(wordId, userId, m.definition, ""));
+    const promises = meanings.filter((m) => m.use).map((m) => this.deps.defRepo.add(wordId, userId, m.definition, ""));
     await Promise.all(promises);
   }
 }

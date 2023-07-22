@@ -1,11 +1,7 @@
-import {
-  InlineKeyboardButton,
-  InlineKeyboardMarkup,
-  Message,
-} from "node-telegram-bot-api";
+import { InlineKeyboardButton, InlineKeyboardMarkup, Message } from "node-telegram-bot-api";
 import { BotContext } from "../BotContext";
 import { BotStateId } from "../states/BotStateId";
-import { CONTINUE_QUERY_DATA } from "../states/CreateDefinitionState";
+import { CANCEL_QUERY_DATA, CONTINUE_QUERY_DATA } from "../states/CreateDefinitionState";
 import { ICreateDefinitionView } from "./ICreateDefinitionView";
 import { CreateDefinitionStateMeaning } from "../data/CreateDefinitionModel";
 
@@ -13,7 +9,8 @@ export class TelegramCreateDefinitionView implements ICreateDefinitionView {
   loader!: Message | undefined;
   mainView!: Message | undefined;
 
-  constructor(private context: BotContext<BotStateId, void>) {}
+  constructor(private context: BotContext<BotStateId, void>) {
+  }
 
   async hideLoader() {
     if (!this.loader) return;
@@ -28,39 +25,32 @@ export class TelegramCreateDefinitionView implements ICreateDefinitionView {
   async showDefinitions(meanings: CreateDefinitionStateMeaning[]) {
     const { message, reply_markup } = this.formatMessage(meanings);
 
-    // add continue button if some of the definitions selected
-    if (meanings.some((m) => m.use))
-      reply_markup.inline_keyboard.push([
-        {
-          text: "Save",
-          callback_data: CONTINUE_QUERY_DATA,
-        },
-      ]);
-
     if (this.mainView) {
       const message_id = this.mainView.message_id;
       await Promise.all([
         this.context.editMessageText(message, {
           message_id,
           parse_mode: "Markdown",
-        }),
-        this.context.editMessageReplyMarkup(reply_markup, { message_id }),
+          reply_markup
+        })
       ]);
     } else {
       this.mainView = await this.context.sendMessage(message, {
         reply_markup,
-        parse_mode: "Markdown",
+        parse_mode: "Markdown"
       });
     }
   }
 
   private formatMessage(
     meanings: CreateDefinitionStateMeaning[],
-    buttonsPerRow = 3,
+    buttonsPerRow = 3
   ): { message: string; reply_markup: InlineKeyboardMarkup } {
     const header = `*List of dictionary definitions available. \nWrite a message(s) to add new definition(s) manually* \n\n`;
-    const messages = meanings.map((m, i) => `${i + 1}) ${m.definition}`);
-    const message = header + messages.join("\n\n");
+    const header0 = `*No definitions found on the internet. Write a message to add new definition*`;
+    const messages = meanings.map((m, i) =>
+      `${i + 1}) ${m.use ? "✓" : ""} ${m.definition}`);
+    const message = (messages.length > 0 ? header : header0) + messages.join("\n\n");
     const buttons: InlineKeyboardButton[][] = [];
     let cur: InlineKeyboardButton[] = [];
     for (let i = 0; i < meanings.length; i++) {
@@ -70,11 +60,27 @@ export class TelegramCreateDefinitionView implements ICreateDefinitionView {
       }
       cur.push({
         text: `${meanings[i].use ? "✅" : "❌"} ${i + 1}`,
-        callback_data: i.toString(),
+        callback_data: i.toString()
       });
     }
 
     if (cur.length > 0) buttons.push(cur);
+
+
+    // add continue button if some of the definitions selected
+    if (meanings.some((m) => m.use))
+      buttons.push([
+        {
+          text: "Save",
+          callback_data: CONTINUE_QUERY_DATA
+        }
+      ]);
+
+    // add cancel button
+    buttons.push([{
+      text: "Cancel",
+      callback_data: CANCEL_QUERY_DATA
+    }])
 
     return { message, reply_markup: { inline_keyboard: buttons } };
   }
