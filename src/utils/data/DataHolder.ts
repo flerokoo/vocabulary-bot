@@ -1,6 +1,8 @@
 import { Observable, Subscription } from "./Observable";
 
 export abstract class DataHolder<T> extends Observable<T> {
+  private dirty: boolean = false;
+
   constructor(private __data: T) {
     super();
   }
@@ -20,6 +22,10 @@ export abstract class DataHolder<T> extends Observable<T> {
 
   protected setState(newData: T): void {
     this.__data = newData;
-    this.emit(newData);
+    this.dirty = true;
+    setTimeout(() => {
+      if (!this.dirty) return;
+      this.emit(newData);
+    }, 0);
   }
 }

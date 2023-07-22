@@ -15,8 +15,9 @@ Available commands:
 /help — to show this message
 /list — to list all words in your dictionary
 /export — to export your dictionary as an Anki deck
-/define _word_ — to add definitions to the word
-/remove _word_ — to remove the work from your dictionary
+/remove _word_ — to remove the word from your dictionary
+
+To edit word definitions just write it in the chat
 `;
 
 export class MainState extends AbstractState<BotStateId, MainStatePayload, CreateDefinitionStatePayload> {
@@ -32,12 +33,15 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
         parse_mode: "Markdown",
         disable_web_page_preview: true
       }),
-    "/define": (word: string) => this.defineWord(word),
     "/list": async () => {
       const header = "*List of your saved words:* \n";
       const words = await this.deps.wordRepo.getAll(this.context.chatId.toString());
       const msg = words.length === 0 ? "No saved words found" : header + words.map((w) => w.word).join("\n");
       await this.context.sendMessage(msg, { parse_mode: "Markdown" });
+    },
+    "/remove": async (word : string) => {
+      await this.deps.wordRepo.removeByText(word, this.context.chatId.toString());
+      await this.context.sendMessage("Removed this word from your dictionary");
     }
   };
 

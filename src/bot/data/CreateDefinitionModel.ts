@@ -1,12 +1,16 @@
 import { DataHolder } from "../../utils/data/DataHolder";
 import { IMeaning } from "../../usecases/entities/IMeaning";
 
-export type CreateDefinitionStateMeaning = IMeaning & { use: boolean };
+export interface CreateDefinitionStateMeaning extends IMeaning {
+  use: boolean, // selected during create definition process
+  fromDb? : boolean // exists in database
+}
+
 export type CreateDefinitionModelData = {
   meanings: CreateDefinitionStateMeaning[];
   word: string;
   userId: string;
-};
+}
 
 export class CreateDefinitionModel extends DataHolder<CreateDefinitionModelData> {
   setDefinitions(meanings: IMeaning[] | CreateDefinitionStateMeaning[]) {
@@ -38,5 +42,9 @@ export class CreateDefinitionModel extends DataHolder<CreateDefinitionModelData>
     const obj = this.data.meanings[i];
     obj.use = !obj.use;
     this.setState(this.data);
+  }
+
+  cleanup() {
+    this.setState({} as CreateDefinitionModelData);
   }
 }

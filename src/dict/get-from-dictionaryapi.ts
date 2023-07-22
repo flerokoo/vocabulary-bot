@@ -1,4 +1,3 @@
-import { NO_WORD } from "../error-messages";
 import { IMeaning } from "../usecases/entities/IMeaning";
 
 type DictApiDefinition = {
@@ -19,25 +18,22 @@ function getUrl(word: string) {
 
 function isCorrectResponse(obj: unknown): obj is DictApiResponse {
   if (!Array.isArray(obj) || obj.length === 0) return false;
-  if (!("meanings" in obj)) return false;
-  return Array.isArray(obj["meanings"]);
+  if (!("meanings" in obj[0])) return false;
+  return Array.isArray(obj[0]["meanings"]);
 }
 
 export default async function getFromDictionaryApi(word: string) {
   const url = getUrl(word);
   const response = await fetch(url);
   const json: unknown = await response.json();
-
   if (!isCorrectResponse(json)) return [];
 
-  const checked = json as DictApiResponse;
-  console.log(checked)
   const meanings: IMeaning[] = [];
-  for (const el of checked) {
+  for (const el of json) {
     for (const meaning of el.meanings) {
       for (const def of meaning.definitions) {
         meanings.push({
-          definition: `[${meaning.partOfSpeech}] ${def.definition}`,
+          definition: `(${meaning.partOfSpeech}) ${def.definition}`,
         });
       }
     }

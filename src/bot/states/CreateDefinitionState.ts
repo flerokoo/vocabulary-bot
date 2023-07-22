@@ -36,9 +36,8 @@ export class CreateDefinitionState extends AbstractState<BotStateId, CreateDefin
 
     if (query.data === CONTINUE_QUERY_DATA) {
       await this.presenter.onContinue();
-      await this.context.sendMessage(`Word saved`);
-      this.context.setState("main");
       await answer("Saved successfully");
+      this.context.setState("main");
       return;
     }
 

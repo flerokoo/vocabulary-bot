@@ -6,4 +6,6 @@ export interface IWordRepository {
   getAll(userId: string): Promise<IWord[]>;
 
   getByText(word: string, userId: string): Promise<IWord | null>;
+
+  removeByText(word : string, userId : string) : Promise<void>;
 }

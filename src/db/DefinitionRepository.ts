@@ -6,13 +6,15 @@ export class DefinitionRepository implements IDefinitionRepository {
   private addQuery: BetterSqlite3.Statement<unknown[]>;
   private getAllQuery: BetterSqlite3.Statement<unknown[]>;
   private getByWordIdQuery: BetterSqlite3.Statement<unknown[]>;
-  private getByWordQuery: BetterSqlite3.Statement<unknown[]>;
+  private getAllByWordQuery: BetterSqlite3.Statement<unknown[]>;
+  private removeQuery: BetterSqlite3.Statement<unknown[]>;
 
   constructor(private readonly db: BetterSqlite3.Database) {
     this.addQuery = db.prepare(`INSERT INTO Definitions (word, definition, example, userId) VALUES (?, ?, ?, ?)`);
+    this.removeQuery = db.prepare(`DELETE FROM Definitions WHERE id=? AND userId=?`);
     this.getAllQuery = db.prepare(`SELECT * FROM Definitions WHERE userId=?`);
     this.getByWordIdQuery = db.prepare(`SELECT * FROM Definitions WHERE userId=? AND word=?`);
-    this.getByWordQuery = db.prepare(`SELECT * FROM Definitions WHERE id IN 
+    this.getAllByWordQuery = db.prepare(`SELECT * FROM Definitions WHERE word IN 
         (SELECT id FROM Words WHERE word=? AND userId=?)`);
     // SELECT D.* FROM Definitions AS D
     //      LEFT JOIN Words AS W
@@ -35,7 +37,13 @@ export class DefinitionRepository implements IDefinitionRepository {
   }
 
   getAllByWord(word: string, userId: string): Promise<IMeaning[]> {
-    const result = this.getByWordQuery.all([word, userId]);
+    const result = this.getAllByWordQuery.all([word, userId]);
     return Promise.resolve(result as IMeaning[]);
   }
+
+  remove(id: number, userId: string) {
+    this.removeQuery.run([id, userId])
+    return Promise.resolve();
+  }
+
 }

@@ -1,14 +1,14 @@
 import { BotDependencies } from "../create-bot";
 import { CreateDefinitionStatePayload } from "../states/CreateDefinitionState";
 import { ICreateDefinitionPresenter } from "./ICreateDefinitionPresenter";
-import { CreateDefinitionModel } from "../data/CreateDefinitionModel";
+import { CreateDefinitionModel, CreateDefinitionStateMeaning } from "../data/CreateDefinitionModel";
 import { ICreateDefinitionView } from "../views/ICreateDefinitionView";
 
 export class CreateDefinitionsPresenter implements ICreateDefinitionPresenter {
   constructor(
     private view: ICreateDefinitionView,
     private model: CreateDefinitionModel,
-    private deps: BotDependencies,
+    private deps: BotDependencies
   ) {
     model.subscribe((data) => {
       if (data?.meanings) view.showDefinitions(data.meanings);
@@ -24,11 +24,13 @@ export class CreateDefinitionsPresenter implements ICreateDefinitionPresenter {
       this.model.setDefinitions(defs);
     } else {
       const defs = await this.deps.defRepo.getAllByWord(payload.word, userId);
-      const defsUsed = defs.map((d) => ({ ...d, use: true }));
+      const defsUsed: CreateDefinitionStateMeaning[] =
+        defs.map((d) => ({ ...d, use: true, fromDb: true }));
       this.model.setDefinitions(defsUsed);
     }
     await this.view.hideLoader();
   }
+
 
   toggleDefinitionUsage(data: string): void {
     this.model.toggleDefinitionUsage(parseInt(data));
@@ -36,6 +38,7 @@ export class CreateDefinitionsPresenter implements ICreateDefinitionPresenter {
 
   reset(): void {
     this.view.cleanup();
+    this.model.cleanup();
   }
 
   addDefinition(text: string): void {
@@ -54,7 +57,15 @@ export class CreateDefinitionsPresenter implements ICreateDefinitionPresenter {
       wordId = await this.deps.wordRepo.add(word, userId);
     }
 
-    const promises = meanings.filter((m) => m.use).map((m) => this.deps.defRepo.add(wordId, userId, m.definition, ""));
-    await Promise.all(promises);
+    const addPromises = meanings
+      .filter((m) => m.use && !m.fromDb)
+      .map((m) => this.deps.defRepo
+        .add(wordId, userId, m.definition, ""));
+
+    const removePromises = meanings
+      .filter(m => !m.use && m.fromDb && typeof m.id === 'number' && !isNaN(m.id))
+      .map(m => this.deps.defRepo.remove(m.id as number, userId));
+
+    await Promise.all([...addPromises, ...removePromises]);
   }
 }

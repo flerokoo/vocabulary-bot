@@ -8,4 +8,6 @@ export interface IDefinitionRepository {
   getAllByWord(word: string, userId: string): Promise<IMeaning[]>;
 
   getAll(userId: string): Promise<IMeaning[]>;
+
+  remove(id: number, userId: string): U;
 }
