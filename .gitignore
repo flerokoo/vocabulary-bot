@@ -1,5 +1,6 @@
 TODO.txt
 db.sqlite
+dbtest/
 
 # Created by https://www.toptal.com/developers/gitignore/api/node,webstorm,visualstudiocode,intellij
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,webstorm,visualstudiocode,intellij

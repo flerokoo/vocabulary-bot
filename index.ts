@@ -3,11 +3,22 @@ import { initDb } from "./src/db/init-db";
 import { createBot } from "./src/bot/create-bot";
 
 (async function () {
-  const { wordRepository, defRepository } = await initDb();
+  const { wordRepository, defRepository, shutdown : shutdownDatabase } = await initDb();
 
-  await createBot("6360199578:AAE06Qmpb1H9sh9UZ8HCWl19vvINpTIPBZ4", {
+  const bot = await createBot("6360199578:AAE06Qmpb1H9sh9UZ8HCWl19vvINpTIPBZ4", {
     defProvider: getFromDictionaryApi,
     wordRepo: wordRepository,
     defRepo: defRepository,
   });
+
+  const stop = async () => {
+    await bot.stop();
+    await shutdownDatabase();
+  }
+
+  // process.on('warning', logError('warning'));
+  // process.on('uncaughtException', logError('Uncaught exception'));
+  // process.on('unhandledRejection', logError('Unhandled rejection'));
+  process.on('SIGINT', stop);
+  process.on('SIGTERM', stop);
 })();

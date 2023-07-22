@@ -98,7 +98,7 @@ export class CreateDefinitionState
     meanings: CreateDefinitionStateMeaning[],
     buttonsPerRow = 3,
   ): { message: string; reply_markup: InlineKeyboardMarkup } {
-    const header = `*List of dictionary definitions available. \nWrite a message(s) to add new definition(s) manually* \n\n`;
+    const header = `*Here's a list of available definitions. \nWrite a message(s) to add new definition(s) manually* \n\n`;
     const header0 = `*No definitions found on the internet. Write a message to add new definition*`;
     const messages = meanings.map((m, i) => `${i + 1}) ${m.use ? "✅" : ""} ${m.definition}`);
     const message = (meanings.length > 0 ? header : header0) + messages.join("\n\n");

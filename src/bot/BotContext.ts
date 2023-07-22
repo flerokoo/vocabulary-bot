@@ -1,6 +1,7 @@
 import { AbstractState } from "./states/AbstractState";
 import TelegramBot, { ChatId, SendMessageOptions } from "node-telegram-bot-api";
 import { Bot } from "./Bot";
+import { Stream } from "stream";
 
 export class BotContext<TStateKey extends string, TPayload> {
   private states: { [key: string]: AbstractState<TStateKey, any, any> } = {};
@@ -8,8 +9,9 @@ export class BotContext<TStateKey extends string, TPayload> {
 
   constructor(
     public readonly bot: Bot<TStateKey, TPayload>,
-    public readonly chatId: ChatId,
-  ) {}
+    public readonly chatId: ChatId
+  ) {
+  }
 
   addState(id: TStateKey, state: AbstractState<TStateKey, TPayload, TPayload>) {
     if (id in this.states) throw new Error(`State ${id} exists`);
@@ -47,21 +49,27 @@ export class BotContext<TStateKey extends string, TPayload> {
   editMessageText(text: string, options?: TelegramBot.EditMessageTextOptions) {
     return this.bot.editMessageText(text, {
       ...options,
-      chat_id: this.chatId,
+      chat_id: this.chatId
     });
   }
 
   editMessageReplyMarkup(
     replyMarkup: TelegramBot.InlineKeyboardMarkup,
-    options?: TelegramBot.EditMessageReplyMarkupOptions,
+    options?: TelegramBot.EditMessageReplyMarkupOptions
   ) {
     return this.bot.editMessageReplyMarkup(replyMarkup, {
       ...options,
-      chat_id: this.chatId,
+      chat_id: this.chatId
     });
   }
 
   answerCallbackQuery(queryId: string, options?: TelegramBot.AnswerCallbackQueryOptions) {
     return this.bot.answerCallbackQuery(queryId, options);
+  }
+
+  sendDocument(doc: string | Stream,
+               options?: TelegramBot.SendDocumentOptions,
+               fileOptions?: TelegramBot.FileOptions) {
+    return this.bot.sendDocument(this.chatId, doc, options, fileOptions);
   }
 }

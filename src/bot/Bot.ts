@@ -1,5 +1,6 @@
 import TelegramBot, { CallbackQuery, ChatId, InlineQuery, SendMessageOptions } from "node-telegram-bot-api";
 import { BotContext } from "./BotContext";
+import { Stream } from "stream";
 
 export interface ContextConfigurator<T extends string, K> {
   (ctx: BotContext<T, K>): void;
@@ -52,12 +53,23 @@ export class Bot<TStateKey extends string, TPayload> {
 
   editMessageReplyMarkup(
     replyMarkup: TelegramBot.InlineKeyboardMarkup,
-    options?: TelegramBot.EditMessageReplyMarkupOptions,
+    options?: TelegramBot.EditMessageReplyMarkupOptions
   ) {
     return this.tg.editMessageReplyMarkup(replyMarkup, options);
   }
 
   answerCallbackQuery(queryId: string, options?: TelegramBot.AnswerCallbackQueryOptions) {
     return this.tg.answerCallbackQuery(queryId, options);
+  }
+
+  sendDocument(chatId: TelegramBot.ChatId,
+               doc: string | Stream ,
+               options?: TelegramBot.SendDocumentOptions,
+               fileOptions?: TelegramBot.FileOptions) {
+    return this.tg.sendDocument(chatId, doc, options, fileOptions);
+  }
+
+  async stop() {
+    await this.tg.stopPolling();
   }
 }

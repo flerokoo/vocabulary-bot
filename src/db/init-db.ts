@@ -32,5 +32,9 @@ export async function initDb() {
   // const qq = db.prepare(`SELECT * FROM Definitions`)
   // console.log(qq.all([]))
 
-  return { wordRepository, defRepository };
+  const shutdown = async () => {
+    db.close()
+  }
+
+  return { wordRepository, defRepository, shutdown };
 }

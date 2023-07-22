@@ -43,6 +43,7 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
       await this.deps.wordRepo.removeByText(word, this.context.chatId.toString());
       await this.context.sendMessage("Removed this word from your dictionary");
     },
+    "/export": () => this.context.setState("export")
   };
 
   constructor(private deps: BotDependencies) {

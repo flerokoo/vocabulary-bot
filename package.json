@@ -27,6 +27,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@types/node": "^20.4.4",
     "better-sqlite3": "^8.5.0",
     "node-telegram-bot-api": "^0.61.0"
   }
