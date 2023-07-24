@@ -32,6 +32,5 @@ export function createBot(token: string, dependencies: BotDependencies) {
     context.addState("create-definition", createDefView);
     context.setState("main");
   }
-
   return new Bot<BotStateId, PayloadUnion>(token, contextConfigurator);
 }

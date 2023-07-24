@@ -2,9 +2,9 @@ import { AbstractState } from "./AbstractState";
 import { BotStateId } from "./BotStateId";
 import { MainStatePayload } from "./MainState";
 import TelegramBot, { InlineKeyboardButton } from "node-telegram-bot-api";
-import { ICardExporter } from "../../export/ICardExporter";
-import { ICard } from "../../entities/ICard";
+import { IDataExporter } from "../../export/IDataExporter";
 import { BotDependencies } from "../create-bot";
+import Anki from "anki-apkg-export";
 
 export type ExportStatePayload = void;
 
@@ -14,17 +14,22 @@ function formatFilename(base: string, ext: string) {
   return `Export_${base}_${date.getDate()}_${date.getMonth()}_${date.getFullYear()}${ext}`;
 }
 
-async function exportAnkiDeck(cards: ICard[]) {
+async function exportAnkiDeck(data: { word: string, meanings: string[] }[]) {
+  const deck = new Anki("My Dictionary");
+  for (const datum of data) {
+    deck.addCard(datum.word, datum.meanings.join("\n\n"));
+  }
+  const pack = await deck.save();
   return {
-    data: "anki",
+    data: pack,
     filename: formatFilename("AnkiDeck", "apkg")
   };
 }
 
-async function exportJson(cards: ICard[]) {
+async function exportJson(data: { word: string, meanings: string[] }[]) {
   return {
-    data: "json",
-    filename: formatFilename("JsonBackup", "json")
+    data: Buffer.from(JSON.stringify(data), "utf-8"),
+    filename: formatFilename("Backup", "json")
   };
 }
 
@@ -32,9 +37,9 @@ const CANCEL_QUERY_DATA = "cancel";
 
 export class ExportState extends AbstractState<BotStateId, ExportStatePayload, MainStatePayload> {
 
-  exporters: { [key: string]: ICardExporter } = {
+  exporters: { [key: string]: IDataExporter } = {
     "Anki Deck": exportAnkiDeck,
-    "Json": exportJson
+    "JSON": exportJson
   };
 
   private mainView: TelegramBot.Message | undefined;
@@ -76,38 +81,43 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
     }
 
     const exporter = this.exporters[query.data];
+
     if (!exporter) return;
-    const cards = await this.getCards();
-    if (cards.length === 0) {
+    const data = await this.getData();
+    if (data.length === 0) {
       await bail("No words to export");
     }
 
-    const { filename, data: dataToExport } = await exporter(cards);
-    console.log(dataToExport);
-    await this.context.sendDocument(dataToExport, {}, { filename, contentType: "application/octet-stream" });
+    const { filename, data: dataToExport } = await exporter(data);
+
+    await this.context.sendDocument(
+      dataToExport,
+      {},
+      { filename, contentType: "application/octet-stream" });
     await bail("Exported successfully");
   }
 
   handleMessage(): void {
   }
 
-  async getCards() {
+  async getData() {
     const userId = this.context.chatId.toString();
     const words = await this.deps.wordRepo.getAllByTelegramId(userId);
-    const cards: ICard[] = [];
+    const output: { word: string, meanings: string[] }[] = [];
 
     const promises = [];
-    for (const word of words) {
-      const p = this.deps.defRepo.getAllByWordIdAndTelegram(word.id, userId).then(def => {
-        const back = def.map(d => d.definition).join("\n\n");
-        cards.push({ front: word.word, back });
+    for (const { word, id } of words) {
+      const p = this.deps.defRepo.getAllByWordIdAndTelegram(id, userId).then(def => {
+        output.push({
+          word,
+          meanings: def.map(d => d.definition)
+        });
       });
       promises.push(p);
     }
 
     await Promise.all(promises);
-    console.log(cards);
-    return cards;
+    return output;
   }
 
 }

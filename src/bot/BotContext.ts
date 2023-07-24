@@ -67,7 +67,7 @@ export class BotContext<TStateKey extends string, TPayload> {
     return this.bot.answerCallbackQuery(queryId, options);
   }
 
-  sendDocument(doc: string | Stream,
+  sendDocument(doc: string | Stream | Buffer,
                options?: TelegramBot.SendDocumentOptions,
                fileOptions?: TelegramBot.FileOptions) {
     return this.bot.sendDocument(this.chatId, doc, options, fileOptions);

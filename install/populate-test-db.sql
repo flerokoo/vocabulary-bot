@@ -28,7 +28,7 @@ INSERT INTO Definitions (id, wordId, definition) VALUES
 INSERT INTO DefinitionOwnership (definitionId, userId) VALUES
     (0, 0),
     (1, 0),
-    (2, 1),
+    (2, 0),
     (3, 1),
     (4, 1),
     (5, 0),

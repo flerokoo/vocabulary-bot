@@ -21,10 +21,12 @@ export class Bot<TStateKey extends string, TPayload> {
   }
 
   private onMessage(msg: TelegramBot.Message) {
+    console.log(msg.text)
     this.getContext(msg.chat.id).onMessage(msg);
   }
 
   private onCallbackQuery(query: CallbackQuery) {
+    console.log(query.data)
     this.getContext(query.from.id).onCallbacKQuery(query);
   }
 
@@ -63,7 +65,7 @@ export class Bot<TStateKey extends string, TPayload> {
   }
 
   sendDocument(chatId: TelegramBot.ChatId,
-               doc: string | Stream ,
+               doc: string | Stream | Buffer,
                options?: TelegramBot.SendDocumentOptions,
                fileOptions?: TelegramBot.FileOptions) {
     return this.tg.sendDocument(chatId, doc, options, fileOptions);
