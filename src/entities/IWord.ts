@@ -1,4 +1,4 @@
-import { SanitizedWordString } from "../../utils/sanitize";
+import { SanitizedWordString } from "../utils/sanitize";
 
 export interface IWord {
   readonly id: number;

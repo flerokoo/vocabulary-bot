@@ -3,7 +3,7 @@ import { BotStateId } from "./BotStateId";
 import { MainStatePayload } from "./MainState";
 import TelegramBot, { InlineKeyboardButton } from "node-telegram-bot-api";
 import { ICardExporter } from "../../export/ICardExporter";
-import { ICard } from "../../usecases/entities/ICard";
+import { ICard } from "../../entities/ICard";
 import { BotDependencies } from "../create-bot";
 
 export type ExportStatePayload = void;
@@ -93,12 +93,12 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
 
   async getCards() {
     const userId = this.context.chatId.toString();
-    const words = await this.deps.wordRepo.getAll(userId);
+    const words = await this.deps.wordRepo.getAllByTelegramId(userId);
     const cards: ICard[] = [];
 
     const promises = [];
     for (const word of words) {
-      const p = this.deps.defRepo.getAllByWordId(word.id, userId).then(def => {
+      const p = this.deps.defRepo.getAllByWordIdAndTelegram(word.id, userId).then(def => {
         const back = def.map(d => d.definition).join("\n\n");
         cards.push({ front: word.word, back });
       });
@@ -106,7 +106,7 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
     }
 
     await Promise.all(promises);
-
+    console.log(cards);
     return cards;
   }
 

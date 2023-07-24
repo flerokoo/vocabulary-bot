@@ -9,6 +9,7 @@ import { IDefinitionRepository } from "../usecases/IDefinitionRepository";
 import { CreateDefinitionsPresenter } from "./presenters/CreateDefinitionsPresenter";
 import { CreateDefinitionModel, CreateDefinitionModelData } from "./data/CreateDefinitionModel";
 import { ExportState } from "./states/ExportState";
+import { IUserRepository } from "../usecases/IUserRepository";
 
 export type PayloadUnion = CreateDefinitionStatePayload | MainStatePayload;
 
@@ -16,6 +17,7 @@ export type BotDependencies = {
   defProvider: IWordDefinitionProvider;
   wordRepo: IWordRepository;
   defRepo: IDefinitionRepository;
+  userRepo: IUserRepository
 };
 
 export function createBot(token: string, dependencies: BotDependencies) {

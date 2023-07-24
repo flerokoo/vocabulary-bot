@@ -1,13 +1,15 @@
-import { IMeaning } from "./entities/IMeaning";
+import { IMeaning } from "../entities/IMeaning";
 
 export interface IDefinitionRepository {
-  add(wordId: number, userId: string, definition: string, example?: string): Promise<void>;
+  add(wordId: number, definition: string): Promise<number>;
 
-  getAllByWordId(wordId: number, userId: string): Promise<IMeaning[]>;
+  getAllByWordIdAndTelegram(wordId: number, userId: string): Promise<IMeaning[]>;
 
-  getAllByWord(word: string, userId: string): Promise<IMeaning[]>;
+  getAllByWordAndTelegram(word: string, userId: string): Promise<IMeaning[]>;
 
-  getAll(userId: string): Promise<IMeaning[]>;
+  getAllByTelegram(userId: string): Promise<IMeaning[]>;
 
-  remove(id: number, userId: string): U;
+  removeOwnershipByIdAndTelegram(id: number, userId: string): Promise<void>;
+
+  addOwnership(defId: number, userId: number): Promise<void>;
 }

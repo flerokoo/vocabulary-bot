@@ -1,40 +1,34 @@
-import Database from "better-sqlite3";
+import * as BetterSqlite3 from "better-sqlite3";
 import fsp from "node:fs/promises";
-import { WordRepository } from "./WordRepository";
-import { DefinitionRepository } from "./DefinitionRepository";
+import { SqliteWordRepository } from "./SqliteWordRepository";
+import { SqliteDefinitionRepository } from "./SqliteDefinitionRepository";
 import config from "../../config";
+import { SqliteUserRepository } from "./SqliteUserRepository";
+
+
+async function install(db: BetterSqlite3.Database) {
+  const query = await fsp.readFile("./install/install-db.sql", "utf-8");
+  db.exec(query);
+}
+
+async function populate(db: BetterSqlite3.Database) {
+  const query = await fsp.readFile("./install/populate-test-db.sql", "utf-8");
+  db.exec(query);
+}
 
 export async function initDb() {
   // const db = new Database(config.databasePath);
-  const db = new Database(":memory:");
-  const installQuery = await fsp.readFile("./install/install-db.sql", "utf-8");
+  const db = new BetterSqlite3.default(":memory:");
+  await install(db);
+  await populate(db)
 
-  db.exec(installQuery);
-
-  const wordRepository = new WordRepository(db);
-  const defRepository = new DefinitionRepository(db);
-  //
-  // db.exec(`INSERT INTO Words(id, word, userId) VALUES
-  //   (1, 'proper', '1110'),
-  //   (2, 'work', '1110'),
-  //   (3, 'proper', '1234');
-  // `);
-  //
-  // db.exec(`INSERT INTO Definitions(id, userId, word, definition) VALUES
-  //   (1, '1110', 1, 'proper def 1'),
-  //   (2, '1110', 1, 'proper def 2'),
-  //   (3, '1110', 2, 'work def 1'),
-  //   (4, '1234', 3, 'proper def 1 other user');
-  // `);
-  //
-  // db.exec(`DELETE FROM Words WHERE id=1`)
-  //
-  // const qq = db.prepare(`SELECT * FROM Definitions`)
-  // console.log(qq.all([]))
+  const wordRepository = new SqliteWordRepository(db);
+  const userRepository = new SqliteUserRepository(db);
+  const defRepository = new SqliteDefinitionRepository(db);
 
   const shutdown = async () => {
-    db.close()
-  }
+    db.close();
+  };
 
-  return { wordRepository, defRepository, shutdown };
+  return { wordRepository, defRepository, userRepository, shutdown };
 }

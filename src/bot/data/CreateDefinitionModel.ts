@@ -1,5 +1,5 @@
 import { DataHolder } from "../../utils/data/DataHolder";
-import { IMeaning } from "../../usecases/entities/IMeaning";
+import { IMeaning } from "../../entities/IMeaning";
 import { SanitizedWordString } from "../../utils/sanitize";
 
 export interface CreateDefinitionStateMeaning extends IMeaning {

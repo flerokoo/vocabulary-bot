@@ -3,12 +3,13 @@ import { initDb } from "./src/db/init-db";
 import { createBot } from "./src/bot/create-bot";
 
 (async function () {
-  const { wordRepository, defRepository, shutdown : shutdownDatabase } = await initDb();
+  const { wordRepository, defRepository, userRepository, shutdown : shutdownDatabase } = await initDb();
 
   const bot = await createBot("6360199578:AAE06Qmpb1H9sh9UZ8HCWl19vvINpTIPBZ4", {
     defProvider: getFromDictionaryApi,
     wordRepo: wordRepository,
     defRepo: defRepository,
+    userRepo: userRepository
   });
 
   const stop = async () => {

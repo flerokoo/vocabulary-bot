@@ -1,4 +1,4 @@
-import { IMeaning } from "../usecases/entities/IMeaning";
+import { IMeaning } from "../entities/IMeaning";
 
 type DictApiDefinition = {
   definition: string;

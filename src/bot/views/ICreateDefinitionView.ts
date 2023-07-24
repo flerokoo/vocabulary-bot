@@ -1,4 +1,4 @@
-import { IMeaning } from "../../usecases/entities/IMeaning";
+import { IMeaning } from "../../entities/IMeaning";
 
 export interface ICreateDefinitionView {
   showLoader(): Promise<void>;

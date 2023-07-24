@@ -7,11 +7,10 @@ import { AbstractPresenter } from "./AbstractPresenter";
 
 export class CreateDefinitionsPresenter
   extends AbstractPresenter<ICreateDefinitionView>
-  implements ICreateDefinitionPresenter
-{
+  implements ICreateDefinitionPresenter {
   constructor(
     private model: CreateDefinitionModel,
-    private deps: BotDependencies,
+    private deps: BotDependencies
   ) {
     super();
     model.subscribe((data) => {
@@ -27,7 +26,7 @@ export class CreateDefinitionsPresenter
       const defs = await this.deps.defProvider(payload.word);
       this.model.setDefinitions(defs);
     } else {
-      const defs = await this.deps.defRepo.getAllByWord(payload.word, userId);
+      const defs = await this.deps.defRepo.getAllByWordAndTelegram(payload.word, userId);
       const defsUsed: CreateDefinitionStateMeaning[] = defs.map((d) => ({ ...d, use: true, fromDb: true }));
       this.model.setDefinitions(defsUsed);
     }
@@ -49,24 +48,26 @@ export class CreateDefinitionsPresenter
 
   async onContinue() {
     // move this to use case
-    const { meanings, userId, word } = this.model.data;
-    const existing = await this.deps.wordRepo.getByText(word, userId);
+    const { meanings, userId : telegramId, word } = this.model.data;
+    const wordId = await this.deps.wordRepo.addWord(word);
 
-    let wordId: number;
-    if (existing) {
-      wordId = existing.id;
-    } else {
-      wordId = await this.deps.wordRepo.add(word, userId);
-    }
+    const user = await this.deps.userRepo.getOrAdd(telegramId);
 
-    const addPromises = meanings
+    await this.deps.wordRepo.addWordOwnership(wordId, user.id);
+
+    const definitionIds = await Promise.all(meanings
       .filter((m) => m.use && !m.fromDb)
-      .map((m) => this.deps.defRepo.add(wordId, userId, m.definition, ""));
+      .map((m) => this.deps.defRepo.add(wordId, m.definition)));
+
+    const ownershipPromises = definitionIds.map(id =>
+      this.deps.defRepo.addOwnership(id, user.id));
 
     const removePromises = meanings
       .filter((m) => !m.use && m.fromDb && typeof m.id === "number" && !isNaN(m.id))
-      .map((m) => this.deps.defRepo.remove(m.id as number, userId));
+      .map((m) => this.deps.defRepo.removeOwnershipByIdAndTelegram(m.id as number, telegramId));
 
-    await Promise.all([...addPromises, ...removePromises]);
+    await Promise.all([...ownershipPromises, ...removePromises]);
+
+    console.log(await this.deps.wordRepo.isWordOwnedByTelegram(word, telegramId))
   }
 }

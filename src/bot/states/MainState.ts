@@ -35,12 +35,12 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
       }),
     "/list": async () => {
       const header = "*List of your saved words:* \n";
-      const words = await this.deps.wordRepo.getAll(this.context.chatId.toString());
+      const words = await this.deps.wordRepo.getAllByTelegramId(this.context.chatId.toString());
       const msg = words.length === 0 ? "No saved words found" : header + words.map((w) => w.word).join("\n");
       await this.context.sendMessage(msg, { parse_mode: "Markdown" });
     },
     "/remove": async (word: string) => {
-      await this.deps.wordRepo.removeByText(word, this.context.chatId.toString());
+      await this.deps.wordRepo.removeOwnershipByWordAndTelegram(word, this.context.chatId.toString());
       await this.context.sendMessage("Removed this word from your dictionary");
     },
     "/export": () => this.context.setState("export")
@@ -62,8 +62,8 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
     }
     const word = sanitize(message.text);
     if (word.length === 0) return;
-    const dbWord = await this.deps.wordRepo.getByText(word, this.context.chatId.toString());
-    if (dbWord) {
+    const isNewWordForThisUser = await this.deps.wordRepo.isWordOwnedByTelegram(word, this.context.chatId.toString());
+    if (isNewWordForThisUser) {
       this.defineWord(word);
     } else {
       this.createAndDefineWord(word);
