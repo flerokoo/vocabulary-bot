@@ -110,7 +110,7 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
 
     const promises = [];
     for (const { word, id } of words) {
-      const p = this.deps.defRepo.getAllByWordIdAndTelegram(id, userId).then(def => {
+      const p = this.deps.defRepo.getAllByWordIdAndTelegram(id as number, userId).then(def => {
         output.push({
           word,
           meanings: def.map(d => d.definition)

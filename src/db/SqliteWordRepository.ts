@@ -38,7 +38,7 @@ export class SqliteWordRepository implements IWordRepository {
 
   async addWord(word: string): Promise<number> {
     const existing = await this.getByWord(word);
-    if (existing) return existing.id;
+    if (existing) return existing.id as number;
     const result = this.addSt.run([word]);
     return result.lastInsertRowid as number;
   }

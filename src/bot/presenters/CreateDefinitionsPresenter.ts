@@ -7,6 +7,8 @@ import { AbstractPresenter } from "./AbstractPresenter";
 import { addWordWithOwner } from "../../usecases/add-word-with-owner";
 import { addDefinitionsWithOwner } from "../../usecases/add-definitions-with-owner";
 import { deleteDefinitionsOwnership } from "../../usecases/delete-definitions-ownership";
+import { IWord } from "../../entities/IWord";
+import { SanitizedWordString } from "../../utils/sanitize";
 
 export class CreateDefinitionsPresenter
   extends AbstractPresenter<ICreateDefinitionView>
@@ -50,19 +52,17 @@ export class CreateDefinitionsPresenter
   }
 
   async onContinue() : Promise<boolean> {
-    const { meanings, userId: telegramId, word } = this.model.data;
+    const { meanings, userId: telegramId, word : wordText} = this.model.data;
     const { userRepo, defRepo, wordRepo } = this.deps;
     try {
-      await addWordWithOwner(telegramId, word, userRepo, wordRepo);
+      const word = await addWordWithOwner(telegramId, wordText as SanitizedWordString, userRepo, wordRepo);
 
       const newDefs = meanings
         .filter((m) => m.use && !m.fromDb)
-        .map(m => m.definition);
       await addDefinitionsWithOwner(telegramId, word, newDefs, defRepo, wordRepo, userRepo);
 
       const removedDefIds = meanings
         .filter((m) => !m.use && m.fromDb && typeof m.id === "number" && !isNaN(m.id))
-        .map((m) => m.id as number);
       await deleteDefinitionsOwnership(telegramId, word, removedDefIds, defRepo, wordRepo, userRepo);
 
       return true;
