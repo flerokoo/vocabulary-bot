@@ -20,7 +20,7 @@ export async function initDb() {
   // const db = new Database(config.databasePath);
   const db = new BetterSqlite3.default(":memory:");
   await install(db);
-  await populate(db)
+  // await populate(db)
 
   const wordRepository = new SqliteWordRepository(db);
   const userRepository = new SqliteUserRepository(db);

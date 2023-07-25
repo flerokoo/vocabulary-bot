@@ -67,7 +67,5 @@ export class CreateDefinitionsPresenter
       .map((m) => this.deps.defRepo.removeOwnershipByIdAndTelegram(m.id as number, telegramId));
 
     await Promise.all([...ownershipPromises, ...removePromises]);
-
-    console.log(await this.deps.wordRepo.isWordOwnedByTelegram(word, telegramId))
   }
 }

@@ -25,7 +25,8 @@ export abstract class DataHolder<T> extends Observable<T> {
     this.dirty = true;
     setTimeout(() => {
       if (!this.dirty) return;
-      this.emit(newData);
-    }, 0);
+      this.dirty = false;
+      this.emit(this.__data);
+    }, 100);
   }
 }

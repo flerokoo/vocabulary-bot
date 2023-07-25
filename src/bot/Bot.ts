@@ -21,12 +21,10 @@ export class Bot<TStateKey extends string, TPayload> {
   }
 
   private onMessage(msg: TelegramBot.Message) {
-    console.log(msg.text)
     this.getContext(msg.chat.id).onMessage(msg);
   }
 
   private onCallbackQuery(query: CallbackQuery) {
-    console.log(query.data)
     this.getContext(query.from.id).onCallbacKQuery(query);
   }
 

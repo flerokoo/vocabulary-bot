@@ -5,6 +5,7 @@ import { PayloadUnion } from "../create-bot";
 import { ICreateDefinitionPresenter } from "../presenters/ICreateDefinitionPresenter";
 import { ICreateDefinitionView } from "../views/ICreateDefinitionView";
 import { CreateDefinitionStateMeaning } from "../data/CreateDefinitionModel";
+import { AsyncQueue } from "../../utils/AsyncQueue";
 
 export const CONTINUE_QUERY_DATA = "continue";
 export const CANCEL_QUERY_DATA = "cancel";
@@ -21,6 +22,7 @@ export class CreateDefinitionState
   private loader!: TelegramBot.Message | undefined;
   private mainViewPromise!: Promise<TelegramBot.Message> | undefined;
   private mainView!: TelegramBot.Message | undefined;
+  private updateQueue : AsyncQueue = new AsyncQueue();
 
   constructor(private presenter: ICreateDefinitionPresenter) {
     super();
@@ -82,13 +84,14 @@ export class CreateDefinitionState
     if (this.mainView) {
       const mainView = await this.getOrCreateMainView(message, reply_markup);
       const message_id = mainView.message_id;
-      await Promise.all([
-        this.context.editMessageText(message, {
+
+      this.updateQueue.add(async () => {
+        await this.context.editMessageText(message, {
           message_id,
           parse_mode: "Markdown",
           reply_markup,
-        }),
-      ]);
+        })
+      });
     } else {
       await this.getOrCreateMainView(message, reply_markup);
     }
@@ -154,19 +157,22 @@ export class CreateDefinitionState
   }
 
   async cleanup() {
-    const promises = [];
-    promises.push(this.hideLoader());
+    this.updateQueue.clear();
+    this.updateQueue.add(async () => {
+      const promises = [];
+      promises.push(this.hideLoader());
 
-    if (this.mainView) {
-      const mainView = this.mainView;
-      this.mainView = undefined;
-      promises.push(this.context.deleteMessage(mainView.message_id));
-    }
+      if (this.mainView) {
+        const mainView = this.mainView;
+        this.mainView = undefined;
+        promises.push(this.context.deleteMessage(mainView.message_id));
+      }
 
-    try {
-      await Promise.all(promises);
-    } catch (e: any) {
-      console.error("Main view hide error");
-    }
+      try {
+        await Promise.all(promises);
+      } catch (e: any) {
+        console.error("Main view hide error");
+      }
+    });
   }
 }

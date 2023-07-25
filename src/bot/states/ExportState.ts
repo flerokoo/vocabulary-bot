@@ -4,7 +4,10 @@ import { MainStatePayload } from "./MainState";
 import TelegramBot, { InlineKeyboardButton } from "node-telegram-bot-api";
 import { IDataExporter } from "../../export/IDataExporter";
 import { BotDependencies } from "../create-bot";
-import Anki from "anki-apkg-export";
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const anki = require("anki-apkg-export");
+
 
 export type ExportStatePayload = void;
 
@@ -15,7 +18,7 @@ function formatFilename(base: string, ext: string) {
 }
 
 async function exportAnkiDeck(data: { word: string, meanings: string[] }[]) {
-  const deck = new Anki("My Dictionary");
+  const deck = new anki.default("My Dictionary");
   for (const datum of data) {
     deck.addCard(datum.word, datum.meanings.join("\n\n"));
   }

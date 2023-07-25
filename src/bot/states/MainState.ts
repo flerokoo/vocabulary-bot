@@ -43,7 +43,12 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
       await this.deps.wordRepo.removeOwnershipByWordAndTelegram(word, this.context.chatId.toString());
       await this.context.sendMessage("Removed this word from your dictionary");
     },
-    "/export": () => this.context.setState("export")
+    "/export": () => this.context.setState("export"),
+    "/learn": async () => {
+      const word = await this.deps.defRepo.getRandomByTelegram(this.context.chatId.toString());
+      if (!word) return await this.context.sendMessage("Add some words first");
+      this.context.setState("learn")
+    }
   };
 
   constructor(private deps: BotDependencies) {

@@ -1,1 +1,1 @@
-export type BotStateId = "main" | "create-definition" | "export";
+export type BotStateId = "main" | "create-definition" | "export" | "learn";

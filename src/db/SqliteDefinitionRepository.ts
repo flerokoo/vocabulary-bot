@@ -9,6 +9,7 @@ export class SqliteDefinitionRepository implements IDefinitionRepository {
   private removeOwnershipByIdAndTelegramSt: BetterSqlite3.Statement<unknown[]>;
   private addOwnershipSt: BetterSqlite3.Statement<unknown[]>;
   private getAllByWordAndTelegramSt: BetterSqlite3.Statement<unknown[]>;
+  private getRandomByTelegramSt: BetterSqlite3.Statement<unknown[]>;
 
   constructor(private readonly db: BetterSqlite3.Database) {
     // this.addSt = db.prepare(`INSERT INTO Definitions (wordId, definition) VALUES (?, ?) RETURNING id`);
@@ -20,7 +21,7 @@ export class SqliteDefinitionRepository implements IDefinitionRepository {
        INNER JOIN Users AS U ON U.id=DO.userId
        INNER JOIN Words AS W ON W.id=D.wordId
        WHERE U.telegram=?
-    `)
+    `);
 
     this.getAllByWordIdAndTelegramSt = db.prepare(`
        SELECT W.id as wordId, W.word, D.id as definitionId, D.definition FROM Definitions AS D
@@ -28,7 +29,7 @@ export class SqliteDefinitionRepository implements IDefinitionRepository {
        INNER JOIN DefinitionOwnership AS DO ON DO.definitionId=D.id
        INNER JOIN Users AS U ON U.id=DO.userId
        WHERE U.telegram=? AND W.id=?
-    `)
+    `);
 
     this.getAllByWordAndTelegramSt = db.prepare(`
        SELECT W.id as wordId, W.word, D.id as definitionId, D.definition FROM Definitions AS D
@@ -36,23 +37,24 @@ export class SqliteDefinitionRepository implements IDefinitionRepository {
        INNER JOIN DefinitionOwnership AS DO ON DO.definitionId=D.id
        INNER JOIN Users AS U ON U.id=DO.userId
        WHERE U.telegram=? AND W.word=?
-    `)
+    `);
 
     this.removeOwnershipByIdAndTelegramSt = db.prepare(`
       DELETE FROM DefinitionOwnership AS DO
       WHERE DO.id=? AND EXISTS (
         SELECT * FROM Users AS U WHERE U.telegram=? AND DO.userId=U.id
       )
-    `)
+    `);
 
-    // this.getAllByTelegramSt = db.prepare(`SELECT * FROM Definitions WHERE userId=?`);
-    // this.removeOwnershipByIdAndTelegramSt = db.prepare(`DELETE FROM Definitions WHERE id=? AND userId=?`);
-    // this.getAllByWordIdAndTelegramSt = db.prepare(`SELECT * FROM Definitions WHERE userId=? AND word=?`);
-    // this.getAllByWordQuery = db.prepare(`SELECT * FROM Definitions WHERE word IN
-    //     (SELECT id FROM Words WHERE word=? AND userId=?)`);
-    // SELECT D.* FROM Definitions AS D
-    //      LEFT JOIN Words AS W
-    //      ON D.word = W.id AND W.word=?
+    this.getRandomByTelegramSt = db.prepare(`
+      SELECT u.id, w.word, d.definition, u.telegram  FROM Definitions d 
+          INNER JOIN DefinitionOwnership do ON do.definitionId = d.id
+          INNER JOIN Words w ON w.id = d.wordId 
+          INNER JOIN Users u ON u.id = do.userId 
+          WHERE u.telegram = ?
+          ORDER BY RANDOM() 
+          LIMIT 1
+    `);
   }
 
   add(wordId: number, definition: string): Promise<number> {
@@ -83,5 +85,10 @@ export class SqliteDefinitionRepository implements IDefinitionRepository {
   removeOwnershipByIdAndTelegram(id: number, userId: string) {
     this.removeOwnershipByIdAndTelegramSt.run([id, userId]);
     return Promise.resolve();
+  }
+
+  getRandomByTelegram(telegramId: string): Promise<{ word: string, definition: string }> {
+    const result = this.getRandomByTelegramSt.get([telegramId]);
+    return Promise.resolve(result as { word: string, definition: string });
   }
 }

@@ -8,10 +8,14 @@ import { IWordRepository } from "../usecases/IWordRepository";
 import { IDefinitionRepository } from "../usecases/IDefinitionRepository";
 import { CreateDefinitionsPresenter } from "./presenters/CreateDefinitionsPresenter";
 import { CreateDefinitionModel, CreateDefinitionModelData } from "./data/CreateDefinitionModel";
-import { ExportState } from "./states/ExportState";
+import { ExportState, ExportStatePayload } from "./states/ExportState";
 import { IUserRepository } from "../usecases/IUserRepository";
+import { LearnState, LearnStatePayload } from "./states/LearnState";
+import { LearnStateModel, LearnStateModelData } from "./data/LearnStateModel";
+import { LearnPresenter } from "./presenters/LearnPresenter";
 
-export type PayloadUnion = CreateDefinitionStatePayload | MainStatePayload;
+export type PayloadUnion = CreateDefinitionStatePayload | MainStatePayload
+  | LearnStatePayload | ExportStatePayload;
 
 export type BotDependencies = {
   defProvider: IWordDefinitionProvider;
@@ -20,17 +24,25 @@ export type BotDependencies = {
   userRepo: IUserRepository
 };
 
+// todo replace manual DI with something
 export function createBot(token: string, dependencies: BotDependencies) {
   function contextConfigurator(context: BotContext<BotStateId, PayloadUnion>) {
     context.addState("main", new MainState(dependencies));
     context.addState("export", new ExportState(dependencies));
-    // todo replace manual DI with something
+    // create definition state
     const createDefModel = new CreateDefinitionModel({} as CreateDefinitionModelData);
     const createDefPresenter = new CreateDefinitionsPresenter(createDefModel, dependencies);
     const createDefView = new CreateDefinitionState(createDefPresenter);
     createDefPresenter.attachView(createDefView);
     context.addState("create-definition", createDefView);
+    // create learn state
+    const learnModel = new LearnStateModel({} as LearnStateModelData);
+    const learnPresenter = new LearnPresenter(learnModel, dependencies);
+    const learnView = new LearnState(learnPresenter);
+    learnPresenter.attachView(learnView);
+    context.addState("learn", learnView);
     context.setState("main");
   }
+
   return new Bot<BotStateId, PayloadUnion>(token, contextConfigurator);
 }

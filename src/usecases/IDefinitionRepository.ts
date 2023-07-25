@@ -12,4 +12,6 @@ export interface IDefinitionRepository {
   removeOwnershipByIdAndTelegram(id: number, userId: string): Promise<void>;
 
   addOwnership(defId: number, userId: number): Promise<void>;
+
+  getRandomByTelegram(telegramId: string): Promise<{ word: string, definition: string }>;
 }
