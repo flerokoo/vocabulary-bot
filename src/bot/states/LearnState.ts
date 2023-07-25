@@ -18,7 +18,6 @@ export class LearnState
   implements ILearnView {
   private mainView!: TelegramBot.Message | undefined;
   private mainViewPromise: Promise<void | TelegramBot.Message> | undefined;
-  private state!: undefined | "mode_select" | "learning";
   private updateQueue: AsyncQueue = new AsyncQueue();
 
   constructor(private presenter: ILearnPresenter) {
@@ -50,7 +49,6 @@ export class LearnState
     const setModeData = [SET_DEF_MODE_QD, SET_WORD_MODE_QD] as string[];
     if (setModeData.indexOf(query.data) > -1) {
       await answer("Learning by definitions");
-      this.state = "learning";
       return this.presenter.onModeRequested(query.data === SET_DEF_MODE_QD ? "definitions" : "words");
     }
 
@@ -81,16 +79,12 @@ export class LearnState
     if (!this.mainView) return;
     const mainView = this.mainView;
     this.mainView = undefined;
-    this.state = undefined;
     this.updateQueue.add(async () => {
       await this.context.deleteMessage(mainView.message_id);
     });
   }
 
   async showModePrompt() {
-    if (this.state === "mode_select") return;
-    this.state = "mode_select";
-    await this.ensureView();
     const inline_keyboard: InlineKeyboardButton[][] = [
       [
         {
@@ -108,8 +102,8 @@ export class LearnState
       }]
     ];
     this.updateQueue.add(async () => {
-      await this.context.editMessageText("Select learning mode", {
-        message_id: this.mainView?.message_id,
+      if (this.mainView) return;
+      this.mainView = await this.context.sendMessage("Select learning mode", {
         reply_markup: { inline_keyboard }
       });
     });

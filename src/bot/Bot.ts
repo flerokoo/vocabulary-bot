@@ -1,4 +1,4 @@
-import TelegramBot, { CallbackQuery, ChatId, InlineQuery, SendMessageOptions } from "node-telegram-bot-api";
+import TelegramBot, { CallbackQuery, ChatId, InlineQuery, Message, SendMessageOptions } from "node-telegram-bot-api";
 import { BotContext } from "./BotContext";
 import { Stream } from "stream";
 
@@ -39,37 +39,48 @@ export class Bot<TStateKey extends string, TPayload> {
     return this.contexts[chatId];
   }
 
-  sendMessage(chatId: ChatId, message: string, options?: SendMessageOptions) {
-    return this.tg.sendMessage(chatId, message, options);
+  sendMessage(chatId: ChatId, message: string, options?: SendMessageOptions): Promise<TelegramBot.Message> {
+    return this.safeCall(() => this.tg.sendMessage(chatId, message, options));
   }
 
   deleteMessage(chatId: ChatId, messageId: number, options?: any) {
-    return this.tg.deleteMessage(chatId, messageId, options);
+    return this.safeCall(() => this.tg.deleteMessage(chatId, messageId, options));
   }
 
   editMessageText(text: string, options?: TelegramBot.EditMessageTextOptions) {
-    return this.tg.editMessageText(text, options);
+    return this.safeCall(() => this.tg.editMessageText(text, options));
   }
 
   editMessageReplyMarkup(
     replyMarkup: TelegramBot.InlineKeyboardMarkup,
     options?: TelegramBot.EditMessageReplyMarkupOptions
   ) {
-    return this.tg.editMessageReplyMarkup(replyMarkup, options);
+    return this.safeCall(() => this.tg.editMessageReplyMarkup(replyMarkup, options));
   }
 
   answerCallbackQuery(queryId: string, options?: TelegramBot.AnswerCallbackQueryOptions) {
-    return this.tg.answerCallbackQuery(queryId, options);
+    return this.safeCall(() => this.tg.answerCallbackQuery(queryId, options));
   }
 
   sendDocument(chatId: TelegramBot.ChatId,
                doc: string | Stream | Buffer,
                options?: TelegramBot.SendDocumentOptions,
                fileOptions?: TelegramBot.FileOptions) {
-    return this.tg.sendDocument(chatId, doc, options, fileOptions);
+    return this.safeCall(() => this.tg.sendDocument(chatId, doc, options, fileOptions));
   }
 
   async stop() {
     await this.tg.stopPolling();
+  }
+
+  private async safeCall<T>(fn: () => Promise<T>): Promise<T> {
+    let out = null;
+    try {
+      out = await fn();
+    } catch (error) {
+      // todo logger
+      console.error("Bot error", error);
+    }
+    return out as T;
   }
 }

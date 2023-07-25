@@ -5,7 +5,8 @@ export type LearnStateModelData = {
   current: { word: string, definition: string } | undefined,
   showAnswer: boolean,
   chatId: string,
-  questionsInSession: number;
+  questionsInSession: number,
+  isActiveState: boolean
 }
 
 export class LearnStateModel extends DataHolder<LearnStateModelData> {
@@ -31,5 +32,9 @@ export class LearnStateModel extends DataHolder<LearnStateModelData> {
 
   get questionsInSession() {
     return this.data.questionsInSession || 0;
+  }
+
+  setActive(isActiveState: boolean) {
+    this.setState({ ...this.data, isActiveState})
   }
 }

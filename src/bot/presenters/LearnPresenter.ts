@@ -10,10 +10,13 @@ export class LearnPresenter extends AbstractPresenter<ILearnView> implements ILe
     private model: LearnStateModel,
     private deps: BotDependencies) {
     super();
-    model.subscribe((data) => this.updateView(data));
+    model.subscribe((data) => {
+      this.updateView(data)
+    });
   }
 
   private async updateView(data: LearnStateModelData) {
+    if (!data.isActiveState) return;
 
     if (data.mode === undefined) {
       return this.view.showModePrompt();
@@ -28,6 +31,7 @@ export class LearnPresenter extends AbstractPresenter<ILearnView> implements ILe
 
   onShow(payload: LearnStatePayload, userId: string): void {
     this.model.setUserId(userId);
+    this.model.setActive(true);
     this.updateView(this.model.data);
   }
 
