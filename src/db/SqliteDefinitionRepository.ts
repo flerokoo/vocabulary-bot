@@ -1,4 +1,4 @@
-import { IDefinitionRepository } from "../usecases/IDefinitionRepository";
+import { IDefinitionRepository } from "./IDefinitionRepository";
 import { IMeaning } from "../entities/IMeaning";
 import * as BetterSqlite3 from "better-sqlite3";
 

@@ -9,5 +9,5 @@ export interface ICreateDefinitionPresenter {
 
   reset(): void;
 
-  onContinue(): void;
+  onContinue(): Promise<boolean>;
 }

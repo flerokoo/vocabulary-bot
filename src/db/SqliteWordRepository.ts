@@ -1,5 +1,5 @@
 import * as BetterSqlite3 from "better-sqlite3";
-import { IWordRepository } from "../usecases/IWordRepository";
+import { IWordRepository } from "./IWordRepository";
 import { IWord } from "../entities/IWord";
 
 export class SqliteWordRepository implements IWordRepository {

@@ -1,4 +1,4 @@
-import { SanitizedWordString } from "../utils/sanitize";
+import { SanitizedWordString } from "./sanitize";
 import { IMeaning } from "../entities/IMeaning";
 
 export default interface IWordDefinitionProvider {

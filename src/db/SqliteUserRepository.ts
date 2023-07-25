@@ -1,5 +1,5 @@
 import * as BetterSqlite3 from "better-sqlite3";
-import { IUserRepository } from "../usecases/IUserRepository";
+import { IUserRepository } from "./IUserRepository";
 import { IUser } from "../entities/IUser";
 
 export class SqliteUserRepository implements IUserRepository {

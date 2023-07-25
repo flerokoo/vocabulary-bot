@@ -47,8 +47,8 @@ export class CreateDefinitionState
       query.id, { text, callback_query_id: query.id });
 
     if (query.data === CONTINUE_QUERY_DATA) {
-      await this.presenter.onContinue();
-      await answer("Saved successfully");
+      const success = await this.presenter.onContinue();
+      await answer(success ? "Saved successfully" : "Some error occurred while saving");
       this.context.setState("main");
       return;
     }
