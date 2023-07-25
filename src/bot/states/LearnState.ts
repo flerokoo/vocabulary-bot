@@ -130,7 +130,7 @@ export class LearnState
 
     let text = `*Question:* ` + (mode === "words" ? current.word : current.definition);
     if (showAnswer)
-      text += "\n*Answer:* " + (mode === "words" ? current.definition : current.word);
+      text += "\n\n*Answer:* " + (mode === "words" ? current.definition : current.word);
 
     text += "\n\n*Words in this session:* " + questionsInSession;
 

@@ -16,8 +16,11 @@ Available commands:
 /list — to list all words in your dictionary
 /export — to export your dictionary as an Anki deck
 /remove _word_ — to remove the word from your dictionary
+/learn — start a learning mode
 
 To edit word definitions just write it in the chat
+
+Contact author: @starina_biba
 `;
 
 export class MainState extends AbstractState<BotStateId, MainStatePayload, CreateDefinitionStatePayload> {
