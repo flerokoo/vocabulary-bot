@@ -4,6 +4,8 @@ import { sanitize } from "../../utils/sanitize";
 import { BotStateId } from "./BotStateId";
 import { CreateDefinitionStatePayload } from "./CreateDefinitionState";
 import { BotDependencies } from "../create-bot";
+import { deleteWordOwnership } from "../../usecases/delete-word-ownership";
+import { getAllWordsByUser } from "../../usecases/get-all-words-by-user";
 
 export type MainStatePayload = void;
 
@@ -29,28 +31,40 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
     "/start": () =>
       this.context.sendMessage(HELP_MESSAGE, {
         parse_mode: "Markdown",
-        disable_web_page_preview: true,
+        disable_web_page_preview: true
       }),
     "/help": () =>
       this.context.sendMessage(HELP_MESSAGE, {
         parse_mode: "Markdown",
-        disable_web_page_preview: true,
+        disable_web_page_preview: true
       }),
     "/list": async () => {
-      const header = "*List of your saved words:* \n";
-      const words = await this.deps.wordRepo.getAllByTelegramId(this.context.chatId.toString());
-      const msg = words.length === 0 ? "No saved words found" : header + words.map((w) => w.word).join("\n");
-      await this.context.sendMessage(msg, { parse_mode: "Markdown" });
+      try {
+        const header = "*List of your saved words:* \n";
+        const words = await getAllWordsByUser(this.context.chatId.toString(), this.deps.wordRepo);
+        const msg = words.length === 0 ? "No saved words found" : header + words.map((w) => w.word).join("\n");
+        await this.context.sendMessage(msg, { parse_mode: "Markdown" });
+      } catch (error) {
+        // todo logger
+        console.error(error)
+        await this.context.sendMessage("Error occured while listing words", { parse_mode: "Markdown" });
+      }
     },
     "/remove": async (word: string) => {
-      await this.deps.wordRepo.removeOwnershipByWordAndTelegram(word, this.context.chatId.toString());
-      await this.context.sendMessage("Removed this word from your dictionary");
+      try {
+        await deleteWordOwnership(this.context.chatId.toString(), { word }, this.deps.wordRepo);
+        await this.context.sendMessage("Removed this word from your dictionary");
+      } catch (error) {
+        // todo logger
+        console.error(error);
+        await this.context.sendMessage("Error occurred while removing word");
+      }
     },
     "/export": () => this.context.setState("export"),
     "/learn": async () => {
       const word = await this.deps.defRepo.getRandomByTelegram(this.context.chatId.toString());
       if (!word) return await this.context.sendMessage("Add some words first");
-      this.context.setState("learn")
+      this.context.setState("learn");
     }
   };
 
@@ -58,9 +72,11 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
     super();
   }
 
-  enter() {}
+  enter() {
+  }
 
-  exit() {}
+  exit() {
+  }
 
   async handleMessage(message: TelegramBot.Message) {
     if (!message.text) return;
@@ -86,7 +102,8 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
     this.commands[command](...args);
   }
 
-  handleCallbackQuery(): void {}
+  handleCallbackQuery(): void {
+  }
 
   private defineWord(word: string) {
     this.context.setState("create-definition", { word, isNewWord: false });
