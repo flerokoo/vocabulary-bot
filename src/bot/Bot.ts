@@ -1,12 +1,13 @@
 import TelegramBot, { CallbackQuery, ChatId, InlineQuery, Message, SendMessageOptions } from "node-telegram-bot-api";
 import { BotContext } from "./BotContext";
 import { Stream } from "stream";
+import { EventEmitter } from "events";
 
 export interface ContextConfigurator<T extends string, K> {
   (ctx: BotContext<T, K>): void;
 }
 
-export class Bot<TStateKey extends string, TPayload> {
+export class Bot<TStateKey extends string, TPayload> extends EventEmitter {
   private readonly tg: TelegramBot;
   private readonly contexts: {
     [key: ChatId]: BotContext<TStateKey, TPayload>;
@@ -14,9 +15,13 @@ export class Bot<TStateKey extends string, TPayload> {
   private readonly contextConfigurator: ContextConfigurator<TStateKey, TPayload>;
 
   constructor(token: string, contextConfigurator: ContextConfigurator<TStateKey, TPayload>) {
+    super();
     this.tg = new TelegramBot(token, { polling: true });
     this.tg.on("message", (msg) => this.onMessage(msg));
     this.tg.on("callback_query", (query) => this.onCallbackQuery(query));
+    const reportError = (err : any) => this.emit(err);
+    this.tg.on("error", reportError);
+    this.tg.on("polling_error", reportError);
     this.contextConfigurator = contextConfigurator;
   }
 
@@ -78,8 +83,7 @@ export class Bot<TStateKey extends string, TPayload> {
     try {
       out = await fn();
     } catch (error) {
-      // todo logger
-      console.error("Bot error", error);
+      this.emit("error", error);
     }
     return out as T;
   }

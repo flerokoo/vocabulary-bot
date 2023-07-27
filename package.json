@@ -29,8 +29,10 @@
   },
   "dependencies": {
     "@types/node": "^20.4.4",
+    "@types/winston": "^2.4.4",
     "anki-apkg-export": "^4.0.3",
     "better-sqlite3": "^8.5.0",
-    "node-telegram-bot-api": "^0.61.0"
+    "node-telegram-bot-api": "^0.61.0",
+    "winston": "^3.10.0"
   }
 }

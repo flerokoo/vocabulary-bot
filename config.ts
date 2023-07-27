@@ -1,5 +1,6 @@
 const config = {
-  databasePath: "./db.sqlite",
+  dbPath: "./db.sqlite",
+  logPath: "./logs/log.log"
 } as const;
 
 export default config;

@@ -39,24 +39,23 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
         disable_web_page_preview: true
       }),
     "/list": async () => {
+      let msg: string;
       try {
         const header = "*List of your saved words:* \n";
         const words = await getAllWordsByUser(this.context.chatId.toString(), this.deps.wordRepo);
-        const msg = words.length === 0 ? "No saved words found" : header + words.map((w) => w.word).join("\n");
-        await this.context.sendMessage(msg, { parse_mode: "Markdown" });
+        msg = words.length === 0 ? "No saved words found" : header + words.map((w) => w.word).join("\n");
       } catch (error) {
-        // todo logger
-        console.error(error)
-        await this.context.sendMessage("Error occured while listing words", { parse_mode: "Markdown" });
+        this.logger.error(error);
+        msg = "Error occurred while listing words";
       }
+      await this.context.sendMessage(msg, { parse_mode: "Markdown" });
     },
     "/remove": async (word: string) => {
       try {
         await deleteWordOwnership(this.context.chatId.toString(), { word }, this.deps.wordRepo);
         await this.context.sendMessage("Removed this word from your dictionary");
       } catch (error) {
-        // todo logger
-        console.error(error);
+        this.logger.error(error);
         await this.context.sendMessage("Error occurred while removing word");
       }
     },
@@ -111,5 +110,9 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
 
   private createAndDefineWord(word: string) {
     this.context.setState("create-definition", { word, isNewWord: true });
+  }
+
+  private get logger() {
+    return this.deps.logger;
   }
 }

@@ -68,7 +68,7 @@ export class CreateDefinitionsPresenter
       return true;
     } catch (error) {
       // todo logger
-      console.error("Error while saving word", error)
+      this.deps.logger.error("create-def-presenter: saving word", error);
       return false;
     }
   }

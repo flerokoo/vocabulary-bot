@@ -6,6 +6,7 @@ import { ICreateDefinitionPresenter } from "../presenters/ICreateDefinitionPrese
 import { ICreateDefinitionView } from "../views/ICreateDefinitionView";
 import { CreateDefinitionStateMeaning } from "../data/CreateDefinitionModel";
 import { AsyncQueue } from "../../utils/AsyncQueue";
+import { ILogger } from "../../utils/ILogger";
 
 export const CONTINUE_QUERY_DATA = "continue";
 export const CANCEL_QUERY_DATA = "cancel";
@@ -24,7 +25,8 @@ export class CreateDefinitionState
   private mainView!: TelegramBot.Message | undefined;
   private updateQueue : AsyncQueue = new AsyncQueue();
 
-  constructor(private presenter: ICreateDefinitionPresenter) {
+  constructor(private presenter: ICreateDefinitionPresenter,
+              private logger : ILogger) {
     super();
   }
 
@@ -74,7 +76,7 @@ export class CreateDefinitionState
       this.loader = undefined;
       await this.context.deleteMessage(loader.message_id);
     } catch (e) {
-      console.error("Loader hide failed");
+      this.logger.error("create-def-state: loader hide error", e);
     }
   }
 
@@ -171,8 +173,9 @@ export class CreateDefinitionState
       try {
         await Promise.all(promises);
       } catch (e: any) {
-        console.error("Main view hide error");
+        this.logger.error("create-def-state: cleanup error", e);
       }
     });
   }
+
 }

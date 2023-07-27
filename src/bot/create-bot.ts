@@ -13,6 +13,7 @@ import { IUserRepository } from "../db/IUserRepository";
 import { LearnState, LearnStatePayload } from "./states/LearnState";
 import { LearnStateModel, LearnStateModelData } from "./data/LearnStateModel";
 import { LearnPresenter } from "./presenters/LearnPresenter";
+import { ILogger } from "../utils/ILogger";
 
 export type PayloadUnion = CreateDefinitionStatePayload | MainStatePayload
   | LearnStatePayload | ExportStatePayload;
@@ -21,7 +22,8 @@ export type BotDependencies = {
   defProvider: IWordDefinitionProvider;
   wordRepo: IWordRepository;
   defRepo: IDefinitionRepository;
-  userRepo: IUserRepository
+  userRepo: IUserRepository,
+  logger: ILogger
 };
 
 // todo replace manual DI with something
@@ -32,7 +34,7 @@ export function createBot(token: string, dependencies: BotDependencies) {
     // create definition state
     const createDefModel = new CreateDefinitionModel({} as CreateDefinitionModelData);
     const createDefPresenter = new CreateDefinitionsPresenter(createDefModel, dependencies);
-    const createDefView = new CreateDefinitionState(createDefPresenter);
+    const createDefView = new CreateDefinitionState(createDefPresenter, dependencies.logger);
     createDefPresenter.attachView(createDefView);
     context.addState("create-definition", createDefView);
     // create learn state
@@ -44,5 +46,10 @@ export function createBot(token: string, dependencies: BotDependencies) {
     context.setState("main");
   }
 
-  return new Bot<BotStateId, PayloadUnion>(token, contextConfigurator);
+
+
+  const bot = new Bot<BotStateId, PayloadUnion>(token, contextConfigurator);
+  bot.addListener("error", err => dependencies.logger.error(err));
+
+  return bot;
 }

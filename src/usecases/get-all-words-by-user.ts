@@ -4,7 +4,7 @@ export async function getAllWordsByUser (
   ownerTelegramId: string,
   wordRepo: IWordRepository
 ) {
-  const words = wordRepo.getAllByTelegramId(this.context.chatId.toString());
+  const words = wordRepo.getAllByTelegramId(ownerTelegramId);
   return words;
 }
 
