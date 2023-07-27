@@ -1,5 +1,5 @@
 TODO.txt
-db.sqlite
+persist/db.sqlite
 dbtest/
 
 # Created by https://www.toptal.com/developers/gitignore/api/node,webstorm,visualstudiocode,intellij
@@ -356,3 +356,4 @@ dist
 /.idea/vcs.xml
 /db.sqlite-journal
 /build/
+/start.sh

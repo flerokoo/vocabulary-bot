@@ -5,6 +5,7 @@ import { isProduction } from "./is-production";
 export function getLogger({ logPath }: { logPath: string }): ILogger {
   if (isProduction())
     return createWinston(logPath);
+
   return console;
 }
 
