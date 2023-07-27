@@ -357,3 +357,4 @@ dist
 /db.sqlite-journal
 /build/
 /start.sh
+/persist/
