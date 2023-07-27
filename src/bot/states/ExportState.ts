@@ -4,37 +4,10 @@ import { MainStatePayload } from "./MainState";
 import TelegramBot, { InlineKeyboardButton } from "node-telegram-bot-api";
 import { IDataExporter } from "../../export/IDataExporter";
 import { BotDependencies } from "../create-bot";
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const anki = require("anki-apkg-export");
-
+import { exportAnkiDeck } from "../../export/export-anki-deck";
+import { exportJson } from "../../export/export-json";
 
 export type ExportStatePayload = void;
-
-function formatFilename(base: string, ext: string) {
-  if (!ext.startsWith(".")) ext = `.${ext}`;
-  const date = new Date();
-  return `Export_${base}_${date.getDate()}_${date.getMonth()}_${date.getFullYear()}${ext}`;
-}
-
-async function exportAnkiDeck(data: { word: string, meanings: string[] }[]) {
-  const deck = new anki.default("My Dictionary");
-  for (const datum of data) {
-    deck.addCard(datum.word, datum.meanings.join("\n\n"));
-  }
-  const pack = await deck.save();
-  return {
-    data: pack,
-    filename: formatFilename("AnkiDeck", "apkg")
-  };
-}
-
-async function exportJson(data: { word: string, meanings: string[] }[]) {
-  return {
-    data: Buffer.from(JSON.stringify(data), "utf-8"),
-    filename: formatFilename("Backup", "json")
-  };
-}
 
 const CANCEL_QUERY_DATA = "cancel";
 
