@@ -24,8 +24,8 @@ const populate = async (db: BetterSqlite3.Database) =>
   await execFile(db, "./install/populate-test-db.sql");
 
 export async function initDb({ dbPath }: { dbPath: string }) {
-  const db = new BetterSqlite3.default(":memory:");
-  // const db = new BetterSqlite3.default(dbPath);
+  // const db = new BetterSqlite3.default(":memory:");
+  const db = new BetterSqlite3.default(dbPath);
   await install(db);
   await populate(db);
 
