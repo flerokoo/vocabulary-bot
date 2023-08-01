@@ -6,6 +6,9 @@ CREATE TABLE IF NOT EXISTS Users (
 	PRIMARY KEY(id AUTOINCREMENT)
 );
 
+CREATE INDEX IF NOT EXISTS Users__telegram__index ON Users(telegram);
+
+
 CREATE TABLE IF NOT EXISTS Words (
 	id	        INTEGER NOT NULL UNIQUE,
 	word	        TEXT NOT NULL UNIQUE,
@@ -22,6 +25,11 @@ CREATE TABLE IF NOT EXISTS WordOwnership (
 	FOREIGN KEY(wordId) REFERENCES Words(id) ON DELETE CASCADE
 	UNIQUE(wordId, userId) ON CONFLICT IGNORE
 );
+
+CREATE INDEX IF NOT EXISTS WordOwnership__userId__index ON WordOwnership(userId);
+CREATE INDEX IF NOT EXISTS WordOwnership__wordId__index ON WordOwnership(wordId);
+CREATE INDEX IF NOT EXISTS WordOwnership__userId_wordId__index ON WordOwnership(userId, wordId);
+
 
 CREATE TABLE IF NOT EXISTS Definitions (
 	id	        INTEGER NOT NULL UNIQUE,
@@ -41,12 +49,17 @@ CREATE TABLE IF NOT EXISTS DefinitionOwnership (
 	UNIQUE(definitionId, userId) ON CONFLICT IGNORE
 );
 
+CREATE INDEX IF NOT EXISTS DefinitionOwnership__userId__index ON DefinitionOwnership(userId);
+
+
 CREATE TABLE IF NOT EXISTS Tags (
 	id	        INTEGER NOT NULL UNIQUE,
 	tag         TEXT NOT NULL UNIQUE,
 	PRIMARY KEY(id AUTOINCREMENT)
 	UNIQUE(tag) ON CONFLICT IGNORE
 );
+
+CREATE INDEX IF NOT EXISTS Tags__tag__index ON Tags(tag);
 
 
 CREATE TABLE IF NOT EXISTS TagOwnership (
@@ -58,6 +71,9 @@ CREATE TABLE IF NOT EXISTS TagOwnership (
 	FOREIGN KEY(userId) REFERENCES Users(id) ON DELETE CASCADE
 	UNIQUE(tagId, userId) ON CONFLICT IGNORE
 );
+
+CREATE INDEX IF NOT EXISTS TagOwnership__tagId__index ON TagOwnership(tagId);
+CREATE INDEX IF NOT EXISTS TagOwnership__userId__index ON TagOwnership(userId);
 
 
 CREATE TABLE IF NOT EXISTS TagToWordRelation (
