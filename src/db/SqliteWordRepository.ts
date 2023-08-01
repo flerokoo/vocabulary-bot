@@ -14,7 +14,8 @@ export class SqliteWordRepository implements IWordRepository {
   private getRandomByUserIdAndTagsSt!: BetterSqlite3.Statement<unknown[]>;
   private getAllByUserIdAndTagsSt!: BetterSqlite3.Statement<unknown[]>;
 
-  constructor(private readonly db: BetterSqlite3.Database) {}
+  constructor(private readonly db: BetterSqlite3.Database) {
+  }
 
   async addWord(word: string): Promise<number> {
     this.addSt ??= this.db.prepare(`INSERT OR IGNORE INTO Words (word) VALUES (?)`);
@@ -80,6 +81,7 @@ export class SqliteWordRepository implements IWordRepository {
   }
 
   getRandomByUserIdAndTags(userId: number, tags: ITag[]): Promise<IWord> {
+
     this.getRandomByUserIdAndTagsSt ??= this.db.prepare(`
       SELECT w.word, w.id  FROM Words w
           INNER JOIN WordOwnership wo ON wo.wordId = w.id
@@ -90,8 +92,10 @@ export class SqliteWordRepository implements IWordRepository {
           LIMIT 1
     `);
     const tagIds = tags.map((t) => t.id);
+
     const result = this.getRandomByUserIdAndTagsSt.get([userId, userId, JSON.stringify(tagIds)]);
     return Promise.resolve(result as IWord);
+
   }
 
   getAllByUserIdAndTags(userId: number, tags: ITag[]): Promise<IWord[]> {

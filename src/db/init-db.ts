@@ -4,7 +4,7 @@ import { SqliteWordRepository } from "./SqliteWordRepository";
 import { SqliteDefinitionRepository } from "./SqliteDefinitionRepository";
 import { SqliteUserRepository } from "./SqliteUserRepository";
 import { SqliteTagRepository } from "./SqliteTagRepository";
-import { isProduction } from "../utils/is-production";
+import path from "node:path"
 
 async function execFile(db: BetterSqlite3.Database, filePath: string) {
   const ENCODING = "utf-8";
@@ -23,6 +23,7 @@ const populate = async (db: BetterSqlite3.Database) => await execFile(db, "./ins
 
 export async function initDb({ dbPath }: { dbPath: string }) {
   // const db = new BetterSqlite3.default(":memory:");
+  await fsp.mkdir(path.dirname(dbPath), { recursive: true });
   const db = new BetterSqlite3.default(dbPath);
   await install(db);
   // await populate(db);

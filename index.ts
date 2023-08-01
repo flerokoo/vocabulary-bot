@@ -5,7 +5,7 @@ import { getLogger } from "./src/utils/get-logger";
 import config from "./config";
 import { isProduction } from "./src/utils/is-production";
 
-(async function() {
+async function start() {
   const {
     wordRepository,
     defRepository,
@@ -14,7 +14,7 @@ import { isProduction } from "./src/utils/is-production";
     shutdown: shutdownDatabase
   } = await initDb(config);
 
-  const logger = getLogger(config);
+  const { logger, shutdown: shutdownLogger } = getLogger(config);
 
   const botToken = process.env.BOT_TOKEN;
   if (!botToken) {
@@ -33,8 +33,10 @@ import { isProduction } from "./src/utils/is-production";
   });
 
   const stop = async () => {
+    logger.log(`Stopping...`)
     await bot.stop();
     await shutdownDatabase();
+    await shutdownLogger();
     setTimeout(() => {
     }, config.shutdownTime);
   };
@@ -46,15 +48,12 @@ import { isProduction } from "./src/utils/is-production";
   process.on("SIGINT", stop);
   process.on("SIGTERM", stop);
 
-  process.on("uncaughtException", function(exception) {
-    console.log(exception);
-  });
-
-  process.on("unhandledRejection", (reason, promise) => {
-    console.log(reason);
-  });
+  process.on("uncaughtException", console.error);
+  process.on("unhandledRejection", console.error);
 
 
   const mode = isProduction() ? "PRODUCTION" : "DEV";
   logger.log(`Ready in ${mode} mode`);
-})();
+}
+
+start();
