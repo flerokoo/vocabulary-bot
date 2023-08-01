@@ -21,9 +21,10 @@ import {
   AssignTagsStatePayload
 } from "./states/AssignTagsState";
 import { ITagRepository } from "../db/ITagRepository";
-import { SelectLearnTagsState, SelectLearnTagsStatePayload } from "./states/SelectLearnTagsState";
 import { AssignTagsStateModel, AssignTagsStateModelData } from "./data/AssignTagsStateModel";
 import { AssignTagsPresenter } from "./presenters/AssignTagsPresenter";
+import { SelectLearnTagsState, SelectLearnTagsStatePayload } from "./states/SelectLearnTagsState";
+import { SelectExportTagsState, SelectExportTagsStatePayload } from "./states/SelectExportTagsState";
 
 export type PayloadUnion = CreateDefinitionStatePayload
   | MainStatePayload
@@ -32,6 +33,7 @@ export type PayloadUnion = CreateDefinitionStatePayload
   | ExportStatePayload
   | AssignTagsStatePayload
   | SelectLearnTagsStatePayload
+  | SelectExportTagsStatePayload
 
 
 export type BotDependencies = {
@@ -74,6 +76,7 @@ const getContextConfigurator = (dependencies: BotDependencies) => async (context
   context.addState("select-learn-tags", new SelectLearnTagsState(user.id, dependencies.tagRepo))
   context.addState("main", new MainState(user.id, dependencies));
   context.addState("export", new ExportState(user.id, dependencies));
+  context.addState("select-export-tags", new SelectExportTagsState(user.id, dependencies.tagRepo));
 
   // set initial state
   context.setState("main");

@@ -11,6 +11,8 @@ export interface IWordRepository {
 
   getAllByUserId(userId: number): Promise<IWord[]>;
 
+  getAllByUserIdAndTags(userId: number, tags: ITag[]): Promise<IWord[]>;
+
   removeOwnershipByWordAndUserId(word: string, userId: number): Promise<void>;
 
   isWordOwnedByUserId(word: string, userId: number): Promise<boolean>;

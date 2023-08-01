@@ -63,6 +63,7 @@ export class LearnState
     this.updateQueue.add(async () => {
       if (!this.mainView) return;
       await this.context.deleteMessage(this.mainView.message_id);
+      this.mainView = undefined;
     });
   }
 
@@ -89,7 +90,7 @@ export class LearnState
 
     this.updateQueue.add(async () => {
       await this.context.editMessageText(text, {
-        message_id: this.mainView?.message_id,
+        message_id: this.mainView!.message_id,
         reply_markup: { inline_keyboard },
         parse_mode: "Markdown"
       });

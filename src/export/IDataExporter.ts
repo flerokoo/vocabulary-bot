@@ -1,3 +1,3 @@
 export interface IDataExporter {
-  (cards: { word: string, meanings: string[] }[]): Promise<{ data: Buffer, filename: string }>;
+  (cards: { word: string, meanings: string[], tags: string[] }[]): Promise<{ data: Buffer, filename: string }>;
 }

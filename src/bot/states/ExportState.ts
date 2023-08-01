@@ -6,8 +6,10 @@ import { IDataExporter } from "../../export/IDataExporter";
 import { BotDependencies } from "../create-bot";
 import { exportAnkiDeck } from "../../export/export-anki-deck";
 import { exportJson } from "../../export/export-json";
+import { ITag } from "../../entities/ITag";
+import { IMeaning } from "../../entities/IMeaning";
 
-export type ExportStatePayload = void;
+export type ExportStatePayload = { tags: ITag[] | undefined };
 
 const CANCEL_QUERY_DATA = "cancel";
 
@@ -19,12 +21,19 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
   };
 
   private mainView: TelegramBot.Message | undefined;
+  private tags: ITag[] | undefined;
 
   constructor(userId: number, private deps: BotDependencies) {
     super(userId);
   }
 
-  async enter() {
+  async enter(payload: ExportStatePayload) {
+    if (payload.tags?.length === 0) {
+      this.deps.logger.warn("No tags given to export");
+      this.context.setState("main");
+      return;
+    }
+    this.tags = payload.tags;
     const inline_keyboard: InlineKeyboardButton[][] = [
       ...Object.keys(this.exporters).map(text => ([{ text, callback_data: text }]))
     ];
@@ -35,6 +44,7 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
   }
 
   async exit() {
+    this.tags = undefined;
     if (this.mainView) {
       const mainView = this.mainView;
       await this.context.deleteMessage(mainView.message_id);
@@ -78,18 +88,23 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
 
   async getData() {
     const userId = this.userId;
-    const words = await this.deps.wordRepo.getAllByUserId(userId);
-    const output: { word: string, meanings: string[] }[] = [];
+    const words = this.tags && this.tags.length > 0
+      ? await this.deps.wordRepo.getAllByUserIdAndTags(userId, this.tags)
+      : await this.deps.wordRepo.getAllByUserId(userId);
+    const output: { word: string, meanings: string[], tags: string[] }[] = [];
 
     const promises = [];
     for (const { word, id } of words) {
-      const p = this.deps.defRepo.getAllByWordIdAndUserId(id as number, userId).then(def => {
+      const defPromise = this.deps.defRepo.getAllByWordIdAndUserId(id as number, userId);
+      const tagPromise = this.deps.tagRepo.getAllTagsByUserIdAndWordId(id as number, userId);
+      const promise = Promise.all([defPromise, tagPromise]).then(([defs, tags]) => {
         output.push({
           word,
-          meanings: def.map(d => d.definition)
+          meanings: (defs as IMeaning[]).map(d => d.definition),
+          tags: (tags as ITag[]).map(_ => _.tag)
         });
-      });
-      promises.push(p);
+      })
+      promises.push(promise);
     }
 
     await Promise.all(promises);

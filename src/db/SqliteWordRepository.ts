@@ -12,6 +12,7 @@ export class SqliteWordRepository implements IWordRepository {
   private isWordOwnedByUserSt!: BetterSqlite3.Statement<unknown[]>;
   private getRandomByUserIdSt!: BetterSqlite3.Statement<unknown[]>;
   private getRandomByUserIdAndTagsSt!: BetterSqlite3.Statement<unknown[]>;
+  private getAllByUserIdAndTagsSt!: BetterSqlite3.Statement<unknown[]>;
 
   constructor(private readonly db: BetterSqlite3.Database) {
 
@@ -81,8 +82,7 @@ export class SqliteWordRepository implements IWordRepository {
   }
 
   getRandomByUserIdAndTags(userId: number, tags: ITag[]): Promise<IWord> {
-    try {
-      this.getRandomByUserIdAndTagsSt ??= this.db.prepare(`
+    this.getRandomByUserIdAndTagsSt ??= this.db.prepare(`
       SELECT w.word, w.id  FROM Words w
           INNER JOIN WordOwnership wo ON wo.wordId = w.id
           INNER JOIN TagToWordRelation ttw ON ttw.wordId = w.id
@@ -91,12 +91,24 @@ export class SqliteWordRepository implements IWordRepository {
           ) ORDER BY RANDOM() 
           LIMIT 1
     `);
-    } catch (e) {
-      console.log(e);
-    }
-
     const tagIds = tags.map(t => t.id);
     const result = this.getRandomByUserIdAndTagsSt.get([userId, userId, JSON.stringify(tagIds)]);
     return Promise.resolve(result as IWord);
+  }
+
+  getAllByUserIdAndTags(userId: number, tags: ITag[]): Promise<IWord[]> {
+
+    this.getAllByUserIdAndTagsSt ??= this.db.prepare(`
+      SELECT w.word, w.id  FROM Words w
+          INNER JOIN WordOwnership wo ON wo.wordId = w.id
+          INNER JOIN TagToWordRelation ttw ON ttw.wordId = w.id
+          WHERE wo.userId=? AND ttw.userId=? AND ttw.tagId IN (
+            SELECT value FROM json_each(?)
+          )          
+    `);
+
+    const tagIds = tags.map(t => t.id);
+    const result = this.getAllByUserIdAndTagsSt.all([userId, userId, JSON.stringify(tagIds)]);
+    return Promise.resolve(result as IWord[]);
   }
 }

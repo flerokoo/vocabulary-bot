@@ -17,7 +17,7 @@ export class AssignTagsState extends AbstractState<BotStateId, AssignTagsStatePa
   implements IAssignStateView {
 
   private updateQueue = new AsyncQueue();
-  private mainView!: TelegramBot.Message;
+  private mainView!: TelegramBot.Message | undefined;
 
   constructor(userId: number,
               private presenter: IAssignStatePresenter,
@@ -37,6 +37,7 @@ export class AssignTagsState extends AbstractState<BotStateId, AssignTagsStatePa
     this.updateQueue.add(async () => {
       if (!this.mainView) return;
       await this.context.deleteMessage(this.mainView.message_id);
+      this.mainView = undefined;
     });
   }
 
@@ -79,7 +80,7 @@ export class AssignTagsState extends AbstractState<BotStateId, AssignTagsStatePa
 
     this.updateQueue.add(async () => {
       await this.context.editMessageText("Select tags for this word or add new ones by sending a message", {
-        message_id: this.mainView.message_id,
+        message_id: this.mainView!.message_id,
         reply_markup: { inline_keyboard }
       });
     });

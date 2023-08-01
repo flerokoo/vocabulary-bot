@@ -72,7 +72,7 @@ export class CreateDefinitionState
     const { message, reply_markup } = this.formatMessage(meanings);
     this.updateQueue.add(async () => {
       await this.context.editMessageText(message, {
-        message_id: this.mainView?.message_id,
+        message_id: this.mainView!.message_id,
         parse_mode: "Markdown",
         reply_markup
       });
@@ -111,8 +111,8 @@ export class CreateDefinitionState
     this.updateQueue.clear();
     this.updateQueue.add(async () => {
       if (!this.mainView) return;
-      console.log("clean")
       await this.context.deleteMessage(this.mainView.message_id);
+      this.mainView = undefined;
     });
   }
 

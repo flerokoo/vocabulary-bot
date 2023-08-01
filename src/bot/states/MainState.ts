@@ -59,7 +59,7 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
         await this.context.sendMessage("Error occurred while removing word");
       }
     },
-    "/export": () => this.context.setState("export"),
+    "/export": () => this.context.setState("select-export-tags"),
     "/learn": async () => {
       const word = await this.deps.defRepo.getRandomByUserId(this.userId);
       if (!word) return await this.context.sendMessage("Add some words first");
