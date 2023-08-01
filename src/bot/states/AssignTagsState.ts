@@ -74,8 +74,8 @@ export class AssignTagsState
       buttons.push({ text: `${selected ? "✅" : "❌"} ${tag.tag}`, callback_data: tag.tag });
     }
     const inline_keyboard = groupKeyboardButtons(buttons);
-    if (data.tags.some((_) => _.selected)) inline_keyboard.push([{ text: "Save", callback_data: CONTINUE_QUERY_DATA }]);
-    inline_keyboard.push([{ text: "Cancel", callback_data: CANCEL_QUERY_DATA }]);
+    if (data.tags.some((_) => _.selected)) inline_keyboard.push([{ text: "➡️ Save", callback_data: CONTINUE_QUERY_DATA }]);
+    inline_keyboard.push([{ text: "↩️ Cancel", callback_data: CANCEL_QUERY_DATA }]);
 
     this.updateQueue.add(async () => {
       await this.context.editMessageText("Select tags for this word or add new ones by sending a message", {

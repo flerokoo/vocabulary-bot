@@ -20,15 +20,17 @@ export class LearnPresenter extends AbstractPresenter<ILearnView> implements ILe
     await this.view?.showQuestion(data.mode, data.current, data.showAnswer, data.questionsInSession);
   }
 
-  onShow(payload: LearnStatePayload, userId: number): void {
+  onShow({ mode, tags }: LearnStatePayload, userId: number): void {
     this.model.setUserId(userId);
     this.model.setActive(true);
-    this.model.setMode(payload.mode);
-    this.model.setTags(payload.tags);
+    this.model.setMode(mode);
+    this.model.setTags(tags);
     this.loadNewQuestion();
+    this.deps.logger.log(`User entered learn mode`, {userId, mode, tags})
   }
 
   reset(): void {
+    this.deps.logger.log(`User exited learn mode`, {userId: this.model.data.userId})
     this.model.cleanup();
     this.view.cleanup();
   }

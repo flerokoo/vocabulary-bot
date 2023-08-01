@@ -10,7 +10,7 @@ import { IAssignStateView } from "../views/IAssignStateView";
 export class AssignTagsPresenter extends AbstractPresenter<IAssignStateView> implements IAssignStatePresenter {
   constructor(
     private model: AssignTagsStateModel,
-    private deps: BotDependencies,
+    private deps: BotDependencies
   ) {
     super();
     model.subscribe((data) => {
@@ -45,6 +45,12 @@ export class AssignTagsPresenter extends AbstractPresenter<IAssignStateView> imp
     const { tagRepo } = this.deps;
     try {
       await updateWordTags(userId, wordId, usedTags, unusedTags, tagRepo);
+      this.deps.logger.log(`Updated word tags`, {
+        userId,
+        usedTags: usedTags.map(_ => _.tag),
+        unusedTags: unusedTags.map(_ => _.tag),
+        wordId
+      });
       return true;
     } catch (error) {
       return false;

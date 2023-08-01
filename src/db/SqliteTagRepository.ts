@@ -10,6 +10,7 @@ export class SqliteTagRepository implements ITagRepository {
   private unassignTagSt!: BetterSqlite3.Statement<unknown[]>;
   private isTagAssignedSt!: BetterSqlite3.Statement<unknown[]>;
   private getAllTagsByUserIdAndWordIdSt!: BetterSqlite3.Statement<unknown[]>;
+  private getTagByTextSt!: BetterSqlite3.Statement<unknown[]>;
 
   constructor(private db: BetterSqlite3.Database) {}
 
@@ -31,7 +32,7 @@ export class SqliteTagRepository implements ITagRepository {
 
   getAllTagsByUserId(userId: number): Promise<ITag[]> {
     this.getAllTagsByUserIdSt ??= this.db.prepare(`
-      SELECT * FROM Tags AS t
+      SELECT t.id, t.tag FROM Tags AS t
       INNER JOIN TagOwnership AS tow ON tow.tagId=t.id
       WHERE tow.userId=?  
     `);
@@ -41,13 +42,16 @@ export class SqliteTagRepository implements ITagRepository {
 
   getOrAddTag(tag: string): Promise<ITag> {
     this.getOrAddTagSt ??= this.db.prepare(`
-      INSERT INTO Tags(tag) VALUES (?)
+      INSERT OR IGNORE INTO Tags(tag) VALUES (?)
     `);
-    const result = this.getOrAddTagSt.run([tag]);
-    return Promise.resolve({
-      id: result.lastInsertRowid as number,
-      tag,
-    });
+    this.getOrAddTagSt.run([tag]);
+
+    this.getTagByTextSt ??= this.db.prepare(`
+      SELECT * from Tags WHERE tag=?
+    `);
+
+    const tagObject = this.getTagByTextSt.get([tag]);
+    return Promise.resolve(tagObject as ITag);
   }
 
   unassignTag(userId: number, tagId: number, wordId: number) {
@@ -68,7 +72,7 @@ export class SqliteTagRepository implements ITagRepository {
 
   getAllTagsByUserIdAndWordId(wordId: number, userId: number): Promise<ITag[]> {
     this.getAllTagsByUserIdAndWordIdSt ??= this.db.prepare(`
-      SELECT * FROM Tags AS t
+      SELECT t.id, t.tag FROM Tags AS t
       INNER JOIN TagOwnership AS tow ON tow.tagId=t.id
       INNER JOIN TagToWordRelation AS ttw On ttw.tagId=tow.tagId
       WHERE tow.userId=? AND ttw.wordId=?

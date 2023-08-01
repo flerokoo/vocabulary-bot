@@ -99,10 +99,10 @@ export class CreateDefinitionState
 
     // add continue button if some of the definitions selected
     if (meanings.some((m) => m.selected))
-      inline_keyboard.push([{ text: "Continue", callback_data: CONTINUE_QUERY_DATA }]);
+      inline_keyboard.push([{ text: "➡️ Continue", callback_data: CONTINUE_QUERY_DATA }]);
 
     // add cancel button
-    inline_keyboard.push([{ text: "Cancel", callback_data: CANCEL_QUERY_DATA }]);
+    inline_keyboard.push([{ text: "↩️ Cancel", callback_data: CANCEL_QUERY_DATA }]);
 
     return { message, reply_markup: { inline_keyboard } };
   }

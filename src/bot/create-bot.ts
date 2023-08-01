@@ -76,11 +76,12 @@ const getContextConfigurator =
 
     // set initial state
     context.setState("main");
+
+    dependencies.logger.log(`Created context for user`, user);
   };
 
 export function createBot(token: string, dependencies: BotDependencies) {
   const bot = new Bot<BotStateId, PayloadUnion>(token, getContextConfigurator(dependencies));
   bot.addListener("error", (err) => dependencies.logger.error(err));
-
   return bot;
 }

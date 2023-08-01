@@ -67,7 +67,7 @@ export class CreateDefinitionsPresenter
         (m) => !m.selected && m.existsInDatabase && typeof m.id === "number" && !isNaN(m.id),
       );
       await deleteDefinitionsOwnership(userId, word, removedDefIds, defRepo, wordRepo);
-
+      this.deps.logger.log(`Saved or updated word`, {userId, word})
       return [true, word.id as number];
     } catch (error) {
       // todo logger

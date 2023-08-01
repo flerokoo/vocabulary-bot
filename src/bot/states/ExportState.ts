@@ -8,10 +8,9 @@ import { exportAnkiDeck } from "../../export/export-anki-deck";
 import { exportJson } from "../../export/export-json";
 import { ITag } from "../../entities/ITag";
 import { IMeaning } from "../../entities/IMeaning";
+import { CANCEL_QUERY_DATA } from "../common/query-data-constants";
 
 export type ExportStatePayload = { tags: ITag[] | undefined };
-
-const CANCEL_QUERY_DATA = "cancel";
 
 export class ExportState extends AbstractState<BotStateId, ExportStatePayload, MainStatePayload> {
   exporters: { [key: string]: IDataExporter } = {
@@ -39,7 +38,7 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
     const inline_keyboard: InlineKeyboardButton[][] = [
       ...Object.keys(this.exporters).map((text) => [{ text, callback_data: text }]),
     ];
-    inline_keyboard.push([{ text: "Cancel", callback_data: CANCEL_QUERY_DATA }]);
+    inline_keyboard.push([{ text: "↩️ Cancel", callback_data: CANCEL_QUERY_DATA }]);
 
     this.mainView = await this.context.sendMessage("Select export format", { reply_markup: { inline_keyboard } });
   }
@@ -78,6 +77,11 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
 
     await this.context.sendDocument(dataToExport, {}, { filename, contentType: "application/octet-stream" });
     await bail("Exported successfully");
+    this.deps.logger.log(`User exported dictionary`, {
+      userId: this.userId,
+      tags: this.tags,
+      format: query.data
+    })
   }
 
   handleMessage(): void {}
