@@ -31,12 +31,12 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
     "/start": () =>
       this.context.sendMessage(HELP_MESSAGE, {
         parse_mode: "Markdown",
-        disable_web_page_preview: true
+        disable_web_page_preview: true,
       }),
     "/help": () =>
       this.context.sendMessage(HELP_MESSAGE, {
         parse_mode: "Markdown",
-        disable_web_page_preview: true
+        disable_web_page_preview: true,
       }),
     "/list": async () => {
       let msg: string;
@@ -64,18 +64,19 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
       const word = await this.deps.defRepo.getRandomByUserId(this.userId);
       if (!word) return await this.context.sendMessage("Add some words first");
       this.context.setState("select-learn-mode");
-    }
+    },
   };
 
-  constructor(userId: number, private deps: BotDependencies) {
+  constructor(
+    userId: number,
+    private deps: BotDependencies,
+  ) {
     super(userId);
   }
 
-  enter() {
-  }
+  enter() {}
 
-  exit() {
-  }
+  exit() {}
 
   async handleMessage(message: TelegramBot.Message) {
     if (!message.text) return;
@@ -101,8 +102,7 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
     this.commands[command](...args);
   }
 
-  handleCallbackQuery(): void {
-  }
+  handleCallbackQuery(): void {}
 
   private defineWord(word: string) {
     this.context.setState("create-definition", { word, isNewWord: false });

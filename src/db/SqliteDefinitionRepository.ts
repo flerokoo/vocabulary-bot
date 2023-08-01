@@ -11,8 +11,7 @@ export class SqliteDefinitionRepository implements IDefinitionRepository {
   private getAllByWordAndTelegramSt!: BetterSqlite3.Statement<unknown[]>;
   private getRandomByUserIdSt!: BetterSqlite3.Statement<unknown[]>;
 
-  constructor(private readonly db: BetterSqlite3.Database) {
-  }
+  constructor(private readonly db: BetterSqlite3.Database) {}
 
   add(wordId: number, definition: string): Promise<number> {
     this.addSt ??= this.db.prepare(`INSERT INTO Definitions (wordId, definition) VALUES (?, ?)`);
@@ -68,7 +67,7 @@ export class SqliteDefinitionRepository implements IDefinitionRepository {
     return Promise.resolve();
   }
 
-  getRandomByUserId(userId: number): Promise<{ word: string, definition: string }> {
+  getRandomByUserId(userId: number): Promise<{ word: string; definition: string }> {
     this.getRandomByUserIdSt ??= this.db.prepare(`
       SELECT w.word, d.definition  FROM Definitions d 
           INNER JOIN DefinitionOwnership do ON do.definitionId = d.id
@@ -78,6 +77,6 @@ export class SqliteDefinitionRepository implements IDefinitionRepository {
           LIMIT 1
     `);
     const result = this.getRandomByUserIdSt.get([userId]);
-    return Promise.resolve(result as { word: string, definition: string });
+    return Promise.resolve(result as { word: string; definition: string });
   }
 }

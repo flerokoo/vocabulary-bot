@@ -10,19 +10,24 @@ import { SelectLearnTagsStatePayload } from "./SelectLearnTagsState";
 
 export type PayloadConverter<TInput, TOutput> = (input: TInput, tags: ITag[]) => TOutput;
 
-export class SelectTagsState<TIncomingPayload, TOutgoingPayload>
-  extends AbstractState<BotStateId, TIncomingPayload, TOutgoingPayload> {
+export class SelectTagsState<TIncomingPayload, TOutgoingPayload> extends AbstractState<
+  BotStateId,
+  TIncomingPayload,
+  TOutgoingPayload
+> {
   private message!: TelegramBot.Message | undefined;
   private usedTags: ITag[] = [];
   private tags!: ITag[];
   private updateQueue: AsyncQueue = new AsyncQueue();
   private lastPayload!: TIncomingPayload | undefined;
 
-  constructor(userId: number,
-              private mainText: string,
-              private tagRepo: ITagRepository,
-              private nextState: BotStateId,
-              private payloadConverter: PayloadConverter<TIncomingPayload, TOutgoingPayload>) {
+  constructor(
+    userId: number,
+    private mainText: string,
+    private tagRepo: ITagRepository,
+    private nextState: BotStateId,
+    private payloadConverter: PayloadConverter<TIncomingPayload, TOutgoingPayload>,
+  ) {
     super(userId);
   }
 
@@ -37,20 +42,21 @@ export class SelectTagsState<TIncomingPayload, TOutgoingPayload>
   }
 
   private async showSelector() {
-    const isUsed = (tag: string) => this.usedTags.some(o => o.tag === tag);
-    const inline_keyboard: InlineKeyboardButton[][] = groupKeyboardButtons(this.tags.map(({ tag }) => ({
-      text: `${isUsed(tag) ? "✅" : "❌"} ${tag}`,
-      callback_data: tag
-    })));
+    const isUsed = (tag: string) => this.usedTags.some((o) => o.tag === tag);
+    const inline_keyboard: InlineKeyboardButton[][] = groupKeyboardButtons(
+      this.tags.map(({ tag }) => ({
+        text: `${isUsed(tag) ? "✅" : "❌"} ${tag}`,
+        callback_data: tag,
+      })),
+    );
 
-    if (this.usedTags.length > 0)
-      inline_keyboard.push([{ text: "➡️ Continue", callback_data: CONTINUE_QUERY_DATA }]);
+    if (this.usedTags.length > 0) inline_keyboard.push([{ text: "➡️ Continue", callback_data: CONTINUE_QUERY_DATA }]);
     inline_keyboard.push([{ text: "↩️ Cancel", callback_data: CANCEL_QUERY_DATA }]);
 
     this.updateQueue.add(async () => {
       await this.context.editMessageText(this.mainText, {
         message_id: this.message!.message_id,
-        reply_markup: { inline_keyboard }
+        reply_markup: { inline_keyboard },
       });
     });
   }
@@ -65,13 +71,9 @@ export class SelectTagsState<TIncomingPayload, TOutgoingPayload>
     });
   }
 
-  async handleMessage() {
+  async handleMessage() {}
 
-  }
-
-  private handleCommand() {
-
-  }
+  private handleCommand() {}
 
   async handleCallbackQuery(query: TelegramBot.CallbackQuery) {
     if (query.data === CANCEL_QUERY_DATA) {
@@ -79,21 +81,18 @@ export class SelectTagsState<TIncomingPayload, TOutgoingPayload>
     }
 
     if (query.data === CONTINUE_QUERY_DATA) {
-      return this.context.setState(this.nextState,
-        this.payloadConverter(this.lastPayload as TIncomingPayload, this.usedTags));
+      return this.context.setState(
+        this.nextState,
+        this.payloadConverter(this.lastPayload as TIncomingPayload, this.usedTags),
+      );
     }
-
 
     if (!this.tags.some(({ tag }) => tag === query.data)) return; // no such tag
 
     const isSelected = this.usedTags.some(({ tag }) => tag === query.data);
-    if (isSelected)
-      this.usedTags = this.usedTags.filter(({ tag }) => tag === query.data);
-    else
-      this.usedTags.push(this.tags.find(({ tag }) => tag === query.data) as ITag);
+    if (isSelected) this.usedTags = this.usedTags.filter(({ tag }) => tag === query.data);
+    else this.usedTags.push(this.tags.find(({ tag }) => tag === query.data) as ITag);
 
     await this.showSelector();
   }
 }
-
-

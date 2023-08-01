@@ -8,7 +8,10 @@ import { updateWordTags } from "../../usecases/update-word-tags";
 import { IAssignStateView } from "../views/IAssignStateView";
 
 export class AssignTagsPresenter extends AbstractPresenter<IAssignStateView> implements IAssignStatePresenter {
-  constructor(private model: AssignTagsStateModel, private deps: BotDependencies) {
+  constructor(
+    private model: AssignTagsStateModel,
+    private deps: BotDependencies,
+  ) {
     super();
     model.subscribe((data) => {
       this.view?.updateView(data);
@@ -20,8 +23,7 @@ export class AssignTagsPresenter extends AbstractPresenter<IAssignStateView> imp
     this.model.setWordId(wordId);
     const tags = await this.deps.tagRepo.getAllTagsByUserId(userId);
     const mapper = (tag: ITag) =>
-      this.deps.tagRepo.isTagAssigned(userId, tag.id, wordId)
-        .then(selected => ({ tag, selected }));
+      this.deps.tagRepo.isTagAssigned(userId, tag.id, wordId).then((selected) => ({ tag, selected }));
     const selectedTags = await Promise.all(tags.map(mapper));
     this.model.setTags(selectedTags);
   }
@@ -38,8 +40,8 @@ export class AssignTagsPresenter extends AbstractPresenter<IAssignStateView> imp
 
   async onSaveRequest(): Promise<boolean> {
     const { tags, userId, wordId } = this.model.data;
-    const usedTags = tags.filter(_ => _.selected).map(_ => _.tag);
-    const unusedTags = tags.filter(_ => !_.selected).map(_ => _.tag);
+    const usedTags = tags.filter((_) => _.selected).map((_) => _.tag);
+    const unusedTags = tags.filter((_) => !_.selected).map((_) => _.tag);
     const { tagRepo } = this.deps;
     try {
       await updateWordTags(userId, wordId, usedTags, unusedTags, tagRepo);

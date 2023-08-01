@@ -1,7 +1,6 @@
 import { ITag } from "../entities/ITag";
 
 export interface ITagRepository {
-
   addOwnership(tagId: number, userId: number): Promise<void>;
 
   assignTag(userId: number, tagId: number, wordId: number): Promise<void>;

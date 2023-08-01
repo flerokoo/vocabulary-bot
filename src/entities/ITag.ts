@@ -1,4 +1,4 @@
 export interface ITag {
-  readonly tag : string;
-  readonly id : number;
+  readonly tag: string;
+  readonly id: number;
 }

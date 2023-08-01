@@ -4,7 +4,7 @@ export interface ILearnPresenter {
   reset(): void;
 
   onShow(payload: LearnStatePayload, userId: number): void;
-  
+
   onNextQuestionRequest(): Promise<any>;
 
   onShowAnswerRequest(): void;

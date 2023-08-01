@@ -12,16 +12,18 @@ import { AssignTagsStateModelData } from "../data/AssignTagsStateModel";
 
 export type AssignTagsStatePayload = { wordId: number };
 
-
-export class AssignTagsState extends AbstractState<BotStateId, AssignTagsStatePayload, MainStatePayload>
-  implements IAssignStateView {
-
+export class AssignTagsState
+  extends AbstractState<BotStateId, AssignTagsStatePayload, MainStatePayload>
+  implements IAssignStateView
+{
   private updateQueue = new AsyncQueue();
   private mainView!: TelegramBot.Message | undefined;
 
-  constructor(userId: number,
-              private presenter: IAssignStatePresenter,
-              private deps: BotDependencies) {
+  constructor(
+    userId: number,
+    private presenter: IAssignStatePresenter,
+    private deps: BotDependencies,
+  ) {
     super(userId);
   }
 
@@ -47,12 +49,10 @@ export class AssignTagsState extends AbstractState<BotStateId, AssignTagsStatePa
     }
   }
 
-  private handleCommand() {
-  }
+  private handleCommand() {}
 
   async handleCallbackQuery(query: TelegramBot.CallbackQuery) {
-    const answer = (text: string) => this.context.answerCallbackQuery(
-      query.id, { text, callback_query_id: query.id });
+    const answer = (text: string) => this.context.answerCallbackQuery(query.id, { text, callback_query_id: query.id });
 
     if (query.data === CANCEL_QUERY_DATA) {
       await answer("Cancelling...");
@@ -74,18 +74,14 @@ export class AssignTagsState extends AbstractState<BotStateId, AssignTagsStatePa
       buttons.push({ text: `${selected ? "✅" : "❌"} ${tag.tag}`, callback_data: tag.tag });
     }
     const inline_keyboard = groupKeyboardButtons(buttons);
-    if (data.tags.some(_ => _.selected))
-      inline_keyboard.push([{ text: "Save", callback_data: CONTINUE_QUERY_DATA }]);
+    if (data.tags.some((_) => _.selected)) inline_keyboard.push([{ text: "Save", callback_data: CONTINUE_QUERY_DATA }]);
     inline_keyboard.push([{ text: "Cancel", callback_data: CANCEL_QUERY_DATA }]);
 
     this.updateQueue.add(async () => {
       await this.context.editMessageText("Select tags for this word or add new ones by sending a message", {
         message_id: this.mainView!.message_id,
-        reply_markup: { inline_keyboard }
+        reply_markup: { inline_keyboard },
       });
     });
   }
-
 }
-
-

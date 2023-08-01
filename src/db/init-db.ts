@@ -17,11 +17,9 @@ async function execFile(db: BetterSqlite3.Database, filePath: string) {
   }
 }
 
-const install = async (db: BetterSqlite3.Database) =>
-  await execFile(db, "./install/install-db.sql");
+const install = async (db: BetterSqlite3.Database) => await execFile(db, "./install/install-db.sql");
 
-const populate = async (db: BetterSqlite3.Database) =>
-  await execFile(db, "./install/populate-test-db.sql");
+const populate = async (db: BetterSqlite3.Database) => await execFile(db, "./install/populate-test-db.sql");
 
 export async function initDb({ dbPath }: { dbPath: string }) {
   // const db = new BetterSqlite3.default(":memory:");

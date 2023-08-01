@@ -8,7 +8,8 @@ import { ILearnView } from "../views/ILearnView";
 export class LearnPresenter extends AbstractPresenter<ILearnView> implements ILearnPresenter {
   constructor(
     private model: LearnStateModel,
-    private deps: BotDependencies) {
+    private deps: BotDependencies,
+  ) {
     super();
     model.subscribe((data) => {
       this.updateView(data);
@@ -40,7 +41,6 @@ export class LearnPresenter extends AbstractPresenter<ILearnView> implements ILe
     this.model.setShowAnswer(true);
   }
 
-
   private async loadNewQuestion() {
     const { userId, tags } = this.model.data;
     const { word } = await this.deps.wordRepo.getRandomByUserIdAndTags(userId, tags);
@@ -50,7 +50,7 @@ export class LearnPresenter extends AbstractPresenter<ILearnView> implements ILe
     }
 
     const data = await this.deps.defRepo.getAllByWordAndUserId(word, this.model.data.userId);
-    const definitions = data.map(_ => _.definition);
+    const definitions = data.map((_) => _.definition);
     this.model.setShowAnswer(false);
     this.model.setCurrentQuestion({ word, definitions });
   }

@@ -7,7 +7,3 @@ export interface ILogger {
 
   info(...data: any[]): void;
 }
-
-
-
-

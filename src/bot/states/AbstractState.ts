@@ -4,9 +4,7 @@ import { BotContext } from "../BotContext";
 export abstract class AbstractState<TStateKey extends string, TIncomingPayload, TOutgoingPayload> {
   context!: BotContext<TStateKey, TOutgoingPayload>;
 
-  protected constructor(
-    protected readonly userId: number
-  ) {}
+  protected constructor(protected readonly userId: number) {}
 
   abstract enter(payload: TIncomingPayload): void;
 
@@ -20,7 +18,5 @@ export abstract class AbstractState<TStateKey extends string, TIncomingPayload, 
     return this.context.chatId.toString();
   }
 
-  dispose() {
-
-  }
+  dispose() {}
 }

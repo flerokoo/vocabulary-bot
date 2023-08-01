@@ -7,14 +7,12 @@ export async function addWordWithOwner(
   userId: number,
   word: SanitizedWordString,
   userRepo: IUserRepository,
-  wordRepo: IWordRepository
+  wordRepo: IWordRepository,
 ): Promise<IWord> {
   const wordId = await wordRepo.addWord(word);
   await wordRepo.addWordOwnership(wordId, userId);
   return {
     id: wordId,
-    word
+    word,
   };
 }
-
-

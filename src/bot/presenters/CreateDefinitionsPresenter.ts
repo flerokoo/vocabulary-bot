@@ -12,10 +12,11 @@ import { SanitizedWordString } from "../../utils/sanitize";
 
 export class CreateDefinitionsPresenter
   extends AbstractPresenter<ICreateDefinitionView>
-  implements ICreateDefinitionPresenter {
+  implements ICreateDefinitionPresenter
+{
   constructor(
     private model: CreateDefinitionModel,
-    private deps: BotDependencies
+    private deps: BotDependencies,
   ) {
     super();
     model.subscribe((data) => {
@@ -34,7 +35,7 @@ export class CreateDefinitionsPresenter
       const defsUsed: CreateDefinitionStateMeaning[] = defs.map((d) => ({
         ...d,
         selected: true,
-        existsInDatabase: true
+        existsInDatabase: true,
       }));
       this.model.setDefinitions(defsUsed);
     }
@@ -59,12 +60,12 @@ export class CreateDefinitionsPresenter
     try {
       const word = await addWordWithOwner(userId, wordText as SanitizedWordString, userRepo, wordRepo);
 
-      const newDefs = meanings
-        .filter((m) => m.selected && !m.existsInDatabase);
+      const newDefs = meanings.filter((m) => m.selected && !m.existsInDatabase);
       await addDefinitionsWithOwner(userId, word, newDefs, defRepo, wordRepo);
 
-      const removedDefIds = meanings
-        .filter((m) => !m.selected && m.existsInDatabase && typeof m.id === "number" && !isNaN(m.id));
+      const removedDefIds = meanings.filter(
+        (m) => !m.selected && m.existsInDatabase && typeof m.id === "number" && !isNaN(m.id),
+      );
       await deleteDefinitionsOwnership(userId, word, removedDefIds, defRepo, wordRepo);
 
       return [true, word.id as number];

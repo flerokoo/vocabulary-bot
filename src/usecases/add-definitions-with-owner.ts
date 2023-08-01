@@ -8,19 +8,15 @@ export async function addDefinitionsWithOwner(
   word: IWord,
   definitions: IMeaning[],
   defRepo: IDefinitionRepository,
-  wordRepo: IWordRepository
+  wordRepo: IWordRepository,
 ) {
   const wordId = await wordRepo.addWord(word.word);
 
   await wordRepo.addWordOwnership(wordId, userId);
 
-  const definitionIds = await Promise.all(definitions
-    .map(m => defRepo.add(wordId, m.definition)));
+  const definitionIds = await Promise.all(definitions.map((m) => defRepo.add(wordId, m.definition)));
 
-  await Promise.all(definitionIds.map(id =>
-    defRepo.addOwnership(id, userId)));
+  await Promise.all(definitionIds.map((id) => defRepo.addOwnership(id, userId)));
 
   return definitionIds;
 }
-
-

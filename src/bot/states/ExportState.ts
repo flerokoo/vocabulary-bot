@@ -14,16 +14,18 @@ export type ExportStatePayload = { tags: ITag[] | undefined };
 const CANCEL_QUERY_DATA = "cancel";
 
 export class ExportState extends AbstractState<BotStateId, ExportStatePayload, MainStatePayload> {
-
   exporters: { [key: string]: IDataExporter } = {
     "Anki Deck": exportAnkiDeck,
-    "JSON": exportJson
+    JSON: exportJson,
   };
 
   private mainView: TelegramBot.Message | undefined;
   private tags: ITag[] | undefined;
 
-  constructor(userId: number, private deps: BotDependencies) {
+  constructor(
+    userId: number,
+    private deps: BotDependencies,
+  ) {
     super(userId);
   }
 
@@ -35,12 +37,11 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
     }
     this.tags = payload.tags;
     const inline_keyboard: InlineKeyboardButton[][] = [
-      ...Object.keys(this.exporters).map(text => ([{ text, callback_data: text }]))
+      ...Object.keys(this.exporters).map((text) => [{ text, callback_data: text }]),
     ];
     inline_keyboard.push([{ text: "Cancel", callback_data: CANCEL_QUERY_DATA }]);
 
-    this.mainView = await this.context.sendMessage("Select export format",
-      { reply_markup: { inline_keyboard } });
+    this.mainView = await this.context.sendMessage("Select export format", { reply_markup: { inline_keyboard } });
   }
 
   async exit() {
@@ -53,8 +54,7 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
   }
 
   async handleCallbackQuery(query: TelegramBot.CallbackQuery) {
-    const answer = (text: string) => this.context.answerCallbackQuery(
-      query.id, { text, callback_query_id: query.id });
+    const answer = (text: string) => this.context.answerCallbackQuery(query.id, { text, callback_query_id: query.id });
 
     const bail = async (text: string) => {
       await answer(text);
@@ -76,22 +76,19 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
 
     const { filename, data: dataToExport } = await exporter(data);
 
-    await this.context.sendDocument(
-      dataToExport,
-      {},
-      { filename, contentType: "application/octet-stream" });
+    await this.context.sendDocument(dataToExport, {}, { filename, contentType: "application/octet-stream" });
     await bail("Exported successfully");
   }
 
-  handleMessage(): void {
-  }
+  handleMessage(): void {}
 
   async getData() {
     const userId = this.userId;
-    const words = this.tags && this.tags.length > 0
-      ? await this.deps.wordRepo.getAllByUserIdAndTags(userId, this.tags)
-      : await this.deps.wordRepo.getAllByUserId(userId);
-    const output: { word: string, meanings: string[], tags: string[] }[] = [];
+    const words =
+      this.tags && this.tags.length > 0
+        ? await this.deps.wordRepo.getAllByUserIdAndTags(userId, this.tags)
+        : await this.deps.wordRepo.getAllByUserId(userId);
+    const output: { word: string; meanings: string[]; tags: string[] }[] = [];
 
     const promises = [];
     for (const { word, id } of words) {
@@ -100,15 +97,14 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
       const promise = Promise.all([defPromise, tagPromise]).then(([defs, tags]) => {
         output.push({
           word,
-          meanings: (defs as IMeaning[]).map(d => d.definition),
-          tags: (tags as ITag[]).map(_ => _.tag)
+          meanings: (defs as IMeaning[]).map((d) => d.definition),
+          tags: (tags as ITag[]).map((_) => _.tag),
         });
-      })
+      });
       promises.push(promise);
     }
 
     await Promise.all(promises);
     return output;
   }
-
 }

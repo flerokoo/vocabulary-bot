@@ -17,13 +17,16 @@ export type CreateDefinitionStatePayload = {
 
 export class CreateDefinitionState
   extends AbstractState<BotStateId, CreateDefinitionStatePayload, PayloadUnion>
-  implements ICreateDefinitionView {
+  implements ICreateDefinitionView
+{
   private mainView!: TelegramBot.Message | undefined;
   private updateQueue: AsyncQueue = new AsyncQueue();
 
-  constructor(userId: number,
-              private presenter: ICreateDefinitionPresenter,
-              private logger: ILogger) {
+  constructor(
+    userId: number,
+    private presenter: ICreateDefinitionPresenter,
+    private logger: ILogger,
+  ) {
     super(userId);
   }
 
@@ -45,16 +48,13 @@ export class CreateDefinitionState
   }
 
   async handleCallbackQuery(query: TelegramBot.CallbackQuery) {
-    const answer = (text: string) => this.context.answerCallbackQuery(
-      query.id, { text, callback_query_id: query.id });
+    const answer = (text: string) => this.context.answerCallbackQuery(query.id, { text, callback_query_id: query.id });
 
     if (query.data === CONTINUE_QUERY_DATA) {
       const [success, wordId] = await this.presenter.onContinue();
       await answer(success ? "Moving on..." : "Some error occurred while saving");
-      if (success)
-        this.context.setState("assign-tags", { wordId });
-      else
-        this.context.setState("main");
+      if (success) this.context.setState("assign-tags", { wordId });
+      else this.context.setState("main");
       return;
     }
 
@@ -74,14 +74,14 @@ export class CreateDefinitionState
       await this.context.editMessageText(message, {
         message_id: this.mainView!.message_id,
         parse_mode: "Markdown",
-        reply_markup
+        reply_markup,
       });
     });
   }
 
   private formatMessage(
     meanings: CreateDefinitionStateMeaning[],
-    buttonsPerRow = 3
+    buttonsPerRow = 3,
   ): { message: string; reply_markup: InlineKeyboardMarkup } {
     const header = `*Here's a list of available definitions. \nWrite a message(s) to add new definition(s) manually* \n\n`;
     const header0 = `*No definitions found on the internet. Write a message to add new definition*`;
@@ -91,7 +91,7 @@ export class CreateDefinitionState
     for (let i = 0; i < meanings.length; i++) {
       buttons.push({
         text: `${meanings[i].selected ? "✅" : "❌"} ${i + 1}`,
-        callback_data: i.toString()
+        callback_data: i.toString(),
       });
     }
 
@@ -115,5 +115,4 @@ export class CreateDefinitionState
       this.mainView = undefined;
     });
   }
-
 }

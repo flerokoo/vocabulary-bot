@@ -8,8 +8,10 @@ export type SelectLearnTagsStatePayload = { mode: LearnMode };
 export class SelectLearnTagsState extends SelectTagsState<SelectLearnTagsStatePayload, LearnStatePayload> {
   constructor(userId: number, tagRepo: ITagRepository) {
     const mainText = `Select tags to use while learning`;
-    const handler: PayloadConverter<SelectLearnTagsStatePayload, LearnStatePayload> =
-      ({ mode }, tags) => ({ tags, mode });
+    const handler: PayloadConverter<SelectLearnTagsStatePayload, LearnStatePayload> = ({ mode }, tags) => ({
+      tags,
+      mode,
+    });
     super(userId, mainText, tagRepo, "learn", handler);
   }
 }

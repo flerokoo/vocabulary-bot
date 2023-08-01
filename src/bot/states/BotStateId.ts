@@ -1,4 +1,5 @@
-export type BotStateId = "main"
+export type BotStateId =
+  | "main"
   | "create-definition"
   | "assign-tags"
   | "select-export-tags"

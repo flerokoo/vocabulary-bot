@@ -1,7 +1,6 @@
 import { IMeaning } from "../entities/IMeaning";
 
 export interface IDefinitionRepository {
-
   add(wordId: number, definition: string): Promise<number>;
 
   addOwnership(defId: number, userId: number): Promise<void>;
@@ -14,5 +13,5 @@ export interface IDefinitionRepository {
 
   removeOwnershipByIdAndUserId(id: number, userId: number): Promise<void>;
 
-  getRandomByUserId(userId: number): Promise<{ word: string, definition: string }>;
+  getRandomByUserId(userId: number): Promise<{ word: string; definition: string }>;
 }

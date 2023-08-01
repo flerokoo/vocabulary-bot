@@ -8,13 +8,10 @@ export async function deleteDefinitionsOwnership(
   word: IWord,
   definitionIds: IMeaning[],
   defRepo: IDefinitionRepository,
-  wordRepo: IWordRepository
+  wordRepo: IWordRepository,
 ) {
   const wordId = await wordRepo.addWord(word.word);
   await wordRepo.addWordOwnership(wordId, userId);
 
-  await Promise.all(definitionIds
-    .map((m) => defRepo.removeOwnershipByIdAndUserId(m.id as number, userId)));
+  await Promise.all(definitionIds.map((m) => defRepo.removeOwnershipByIdAndUserId(m.id as number, userId)));
 }
-
-

@@ -9,9 +9,8 @@ export class BotContext<TStateKey extends string, TPayload> {
 
   constructor(
     public readonly bot: Bot<TStateKey, TPayload>,
-    public readonly chatId: ChatId
-  ) {
-  }
+    public readonly chatId: ChatId,
+  ) {}
 
   addState(id: TStateKey, state: AbstractState<TStateKey, TPayload, TPayload>) {
     if (id in this.states) throw new Error(`State ${id} exists`);
@@ -49,17 +48,17 @@ export class BotContext<TStateKey extends string, TPayload> {
   editMessageText(text: string, options?: TelegramBot.EditMessageTextOptions) {
     return this.bot.editMessageText(text, {
       ...options,
-      chat_id: this.chatId
+      chat_id: this.chatId,
     });
   }
 
   editMessageReplyMarkup(
     replyMarkup: TelegramBot.InlineKeyboardMarkup,
-    options?: TelegramBot.EditMessageReplyMarkupOptions
+    options?: TelegramBot.EditMessageReplyMarkupOptions,
   ) {
     return this.bot.editMessageReplyMarkup(replyMarkup, {
       ...options,
-      chat_id: this.chatId
+      chat_id: this.chatId,
     });
   }
 
@@ -67,9 +66,11 @@ export class BotContext<TStateKey extends string, TPayload> {
     return this.bot.answerCallbackQuery(queryId, options);
   }
 
-  sendDocument(doc: string | Stream | Buffer,
-               options?: TelegramBot.SendDocumentOptions,
-               fileOptions?: TelegramBot.FileOptions) {
+  sendDocument(
+    doc: string | Stream | Buffer,
+    options?: TelegramBot.SendDocumentOptions,
+    fileOptions?: TelegramBot.FileOptions,
+  ) {
     return this.bot.sendDocument(this.chatId, doc, options, fileOptions);
   }
 

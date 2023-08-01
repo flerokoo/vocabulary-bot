@@ -2,7 +2,6 @@ import { IWord } from "../entities/IWord";
 import { ITag } from "../entities/ITag";
 
 export interface IWordRepository {
-
   addWord(word: string): Promise<number>;
 
   addWordOwnership(wordId: number, userId: number): Promise<number>;

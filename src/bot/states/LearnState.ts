@@ -8,16 +8,16 @@ import { LearnMode } from "./SelectLearnModeState";
 import { EXIT_QUERY_DATA, SHOW_ANSWER_QUERY_DATA, NEXT_PAGE_QUERY_DATA } from "../common/query-data-constants";
 import { ITag } from "../../entities/ITag";
 
+export type LearnStatePayload = { mode: LearnMode; tags: ITag[] };
 
-export type LearnStatePayload = { mode: LearnMode, tags: ITag[] };
-
-export class LearnState
-  extends AbstractState<BotStateId, LearnStatePayload, void>
-  implements ILearnView {
+export class LearnState extends AbstractState<BotStateId, LearnStatePayload, void> implements ILearnView {
   private mainView!: TelegramBot.Message | undefined;
   private updateQueue: AsyncQueue = new AsyncQueue();
 
-  constructor(userId: number, private presenter: ILearnPresenter) {
+  constructor(
+    userId: number,
+    private presenter: ILearnPresenter,
+  ) {
     super(userId);
   }
 
@@ -32,14 +32,12 @@ export class LearnState
     this.presenter.reset();
   }
 
-  async handleMessage() {
-  }
+  async handleMessage() {}
 
   async handleCallbackQuery(query: TelegramBot.CallbackQuery) {
     if (typeof query.data === "undefined") return;
 
-    const answer = (text: string) => this.context.answerCallbackQuery(
-      query.id, { text, callback_query_id: query.id });
+    const answer = (text: string) => this.context.answerCallbackQuery(query.id, { text, callback_query_id: query.id });
 
     if (query.data === EXIT_QUERY_DATA) {
       await answer("Good job");
@@ -55,7 +53,6 @@ export class LearnState
       await answer("Showing answer");
       return this.presenter.onShowAnswerRequest();
     }
-
   }
 
   async cleanup() {
@@ -67,24 +64,23 @@ export class LearnState
     });
   }
 
-
-  async showQuestion(mode: LearnMode,
-                     current: { word: string; definitions: string[] } | undefined,
-                     showAnswer: boolean, questionsInSession: number): Promise<void> {
+  async showQuestion(
+    mode: LearnMode,
+    current: { word: string; definitions: string[] } | undefined,
+    showAnswer: boolean,
+    questionsInSession: number,
+  ): Promise<void> {
     if (!current) return;
 
     const inline_keyboard: InlineKeyboardButton[][] = [];
     inline_keyboard.push([{ text: "➡️ Next", callback_data: NEXT_PAGE_QUERY_DATA }]);
-    if (!showAnswer)
-      inline_keyboard[0].unshift({ text: "💡️ Show answer", callback_data: SHOW_ANSWER_QUERY_DATA });
+    if (!showAnswer) inline_keyboard[0].unshift({ text: "💡️ Show answer", callback_data: SHOW_ANSWER_QUERY_DATA });
     inline_keyboard.push([{ text: "↩️ Exit", callback_data: EXIT_QUERY_DATA }]);
 
-
     const word = "✴️ " + current.word;
-    const definitions = current.definitions.map( _ => "❇️ " + _).join("\n");
+    const definitions = current.definitions.map((_) => "❇️ " + _).join("\n");
     let text = `*Question:*\n ` + (mode === "Words" ? word : definitions);
-    if (showAnswer)
-      text += "\n\n*Answer:*\n" + (mode === "Words" ? definitions : word );
+    if (showAnswer) text += "\n\n*Answer:*\n" + (mode === "Words" ? definitions : word);
 
     text += "\n\n*Words in this session:* " + questionsInSession;
 
@@ -92,11 +88,9 @@ export class LearnState
       await this.context.editMessageText(text, {
         message_id: this.mainView!.message_id,
         reply_markup: { inline_keyboard },
-        parse_mode: "Markdown"
+        parse_mode: "Markdown",
       });
     });
-
-
   }
 
   onNoQuestionsFound(): void {

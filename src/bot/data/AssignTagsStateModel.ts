@@ -2,13 +2,12 @@ import { DataHolder } from "../../utils/data/DataHolder";
 import { ITag } from "../../entities/ITag";
 import { ChatId } from "node-telegram-bot-api";
 
-
 export type AssignTagsStateModelData = {
-  tags: { tag: ITag, selected: boolean }[];
+  tags: { tag: ITag; selected: boolean }[];
   wordId: number;
   userId: number;
   chatId: ChatId;
-}
+};
 
 export class AssignTagsStateModel extends DataHolder<AssignTagsStateModelData> {
   addNewTag(tag: ITag) {
@@ -24,12 +23,12 @@ export class AssignTagsStateModel extends DataHolder<AssignTagsStateModelData> {
     this.setState({ ...this.data, wordId });
   }
 
-  setTags(newTags: { tag: ITag, selected: boolean }[]) {
+  setTags(newTags: { tag: ITag; selected: boolean }[]) {
     this.setState({ ...this.data, tags: newTags });
   }
 
   toggleTagUsage(tag: string) {
-    const tagObj = this.data.tags.find(o => o.tag.tag === tag);
+    const tagObj = this.data.tags.find((o) => o.tag.tag === tag);
     if (!tagObj) return;
     tagObj.selected = !tagObj.selected;
     this.setState(this.data);

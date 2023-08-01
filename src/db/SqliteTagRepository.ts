@@ -11,9 +11,7 @@ export class SqliteTagRepository implements ITagRepository {
   private isTagAssignedSt!: BetterSqlite3.Statement<unknown[]>;
   private getAllTagsByUserIdAndWordIdSt!: BetterSqlite3.Statement<unknown[]>;
 
-  constructor(private db: BetterSqlite3.Database) {
-
-  }
+  constructor(private db: BetterSqlite3.Database) {}
 
   addOwnership(tagId: number, userId: number): Promise<void> {
     this.addOwnershipSt ??= this.db.prepare(`
@@ -48,7 +46,7 @@ export class SqliteTagRepository implements ITagRepository {
     const result = this.getOrAddTagSt.run([tag]);
     return Promise.resolve({
       id: result.lastInsertRowid as number,
-      tag
+      tag,
     });
   }
 
@@ -78,5 +76,4 @@ export class SqliteTagRepository implements ITagRepository {
     const result = this.getAllTagsByUserIdAndWordIdSt.all([userId, wordId]);
     return Promise.resolve(result as ITag[]);
   }
-
 }

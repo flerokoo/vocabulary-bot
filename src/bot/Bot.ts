@@ -26,11 +26,11 @@ export class Bot<TStateKey extends string, TPayload> extends EventEmitter {
   }
 
   private onMessage(msg: TelegramBot.Message) {
-    this.getContext(msg.chat.id).then(context => context.onMessage(msg));
+    this.getContext(msg.chat.id).then((context) => context.onMessage(msg));
   }
 
   private onCallbackQuery(query: CallbackQuery) {
-    this.getContext(query.from.id).then(context => context.onCallbacKQuery(query));
+    this.getContext(query.from.id).then((context) => context.onCallbacKQuery(query));
   }
 
   private async createContext(chatId: ChatId) {
@@ -58,7 +58,7 @@ export class Bot<TStateKey extends string, TPayload> extends EventEmitter {
 
   editMessageReplyMarkup(
     replyMarkup: TelegramBot.InlineKeyboardMarkup,
-    options?: TelegramBot.EditMessageReplyMarkupOptions
+    options?: TelegramBot.EditMessageReplyMarkupOptions,
   ) {
     return this.safeCall(() => this.tg.editMessageReplyMarkup(replyMarkup, options));
   }
@@ -67,10 +67,12 @@ export class Bot<TStateKey extends string, TPayload> extends EventEmitter {
     return this.safeCall(() => this.tg.answerCallbackQuery(queryId, options));
   }
 
-  sendDocument(chatId: TelegramBot.ChatId,
-               doc: string | Stream | Buffer,
-               options?: TelegramBot.SendDocumentOptions,
-               fileOptions?: TelegramBot.FileOptions) {
+  sendDocument(
+    chatId: TelegramBot.ChatId,
+    doc: string | Stream | Buffer,
+    options?: TelegramBot.SendDocumentOptions,
+    fileOptions?: TelegramBot.FileOptions,
+  ) {
     return this.safeCall(() => this.tg.sendDocument(chatId, doc, options, fileOptions));
   }
 
