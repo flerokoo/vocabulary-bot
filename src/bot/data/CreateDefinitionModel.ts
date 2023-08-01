@@ -3,20 +3,20 @@ import { IMeaning } from "../../entities/IMeaning";
 import { SanitizedWordString } from "../../utils/sanitize";
 
 export interface CreateDefinitionStateMeaning extends IMeaning {
-  use: boolean; // selected during create definition process
-  fromDb?: boolean; // exists in database
+  selected: boolean; // selected during create definition process
+  existsInDatabase?: boolean; // exists in database
 }
 
 export type CreateDefinitionModelData = {
   meanings: CreateDefinitionStateMeaning[];
   word: SanitizedWordString;
-  userId: string;
+  userId: number;
 };
 
 export class CreateDefinitionModel extends DataHolder<CreateDefinitionModelData> {
   setDefinitions(meanings: IMeaning[] | CreateDefinitionStateMeaning[]) {
     const newMeanings = meanings.map((m) => ({
-      use: false,
+      selected: false,
       ...m,
     }));
     this.setState({ ...this.data, meanings: newMeanings });
@@ -24,7 +24,7 @@ export class CreateDefinitionModel extends DataHolder<CreateDefinitionModelData>
 
   addDefinition(meaning: IMeaning, use = true) {
     const newMeanings = this.data?.meanings ? this.data.meanings.map((m) => ({ ...m })) : [];
-    newMeanings.push({ ...meaning, use });
+    newMeanings.push({ ...meaning, selected: use });
     this.setState({ ...this.data, meanings: newMeanings });
   }
 
@@ -32,7 +32,7 @@ export class CreateDefinitionModel extends DataHolder<CreateDefinitionModelData>
     this.setState({ ...this.data, word });
   }
 
-  setUserId(userId: string) {
+  setUserId(userId: number) {
     this.setState({ ...this.data, userId });
   }
 
@@ -41,7 +41,7 @@ export class CreateDefinitionModel extends DataHolder<CreateDefinitionModelData>
     if (isNaN(i)) return;
     if (i < 0 || i >= this.data.meanings.length) return;
     const obj = this.data.meanings[i];
-    obj.use = !obj.use;
+    obj.selected = !obj.selected;
     this.setState(this.data);
   }
 

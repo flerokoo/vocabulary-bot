@@ -4,7 +4,9 @@ import { BotContext } from "../BotContext";
 export abstract class AbstractState<TStateKey extends string, TIncomingPayload, TOutgoingPayload> {
   context!: BotContext<TStateKey, TOutgoingPayload>;
 
-  protected constructor() {}
+  protected constructor(
+    protected readonly userId: number
+  ) {}
 
   abstract enter(payload: TIncomingPayload): void;
 
@@ -13,4 +15,12 @@ export abstract class AbstractState<TStateKey extends string, TIncomingPayload, 
   abstract handleCallbackQuery(query: TelegramBot.CallbackQuery): void;
 
   abstract exit(): void;
+
+  get chatId() {
+    return this.context.chatId.toString();
+  }
+
+  dispose() {
+
+  }
 }

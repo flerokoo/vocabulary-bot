@@ -23,19 +23,21 @@ export class CreateDefinitionsPresenter
     });
   }
 
-  async onShow(payload: CreateDefinitionStatePayload, userId: string) {
+  async onShow(payload: CreateDefinitionStatePayload, userId: number) {
     this.model.setWord(payload.word);
     this.model.setUserId(userId);
-    await this.view.showLoader();
     if (payload.isNewWord) {
       const defs = await this.deps.defProvider(payload.word);
       this.model.setDefinitions(defs);
     } else {
-      const defs = await this.deps.defRepo.getAllByWordAndTelegram(payload.word, userId);
-      const defsUsed: CreateDefinitionStateMeaning[] = defs.map((d) => ({ ...d, use: true, fromDb: true }));
+      const defs = await this.deps.defRepo.getAllByWordAndUserId(payload.word, userId);
+      const defsUsed: CreateDefinitionStateMeaning[] = defs.map((d) => ({
+        ...d,
+        selected: true,
+        existsInDatabase: true
+      }));
       this.model.setDefinitions(defsUsed);
     }
-    await this.view.hideLoader();
   }
 
   toggleDefinitionUsage(data: string): void {
@@ -51,25 +53,25 @@ export class CreateDefinitionsPresenter
     this.model.addDefinition({ definition: text });
   }
 
-  async onContinue() : Promise<boolean> {
-    const { meanings, userId: telegramId, word : wordText} = this.model.data;
+  async onContinue(): Promise<[boolean, number]> {
+    const { meanings, userId, word: wordText } = this.model.data;
     const { userRepo, defRepo, wordRepo } = this.deps;
     try {
-      const word = await addWordWithOwner(telegramId, wordText as SanitizedWordString, userRepo, wordRepo);
+      const word = await addWordWithOwner(userId, wordText as SanitizedWordString, userRepo, wordRepo);
 
       const newDefs = meanings
-        .filter((m) => m.use && !m.fromDb)
-      await addDefinitionsWithOwner(telegramId, word, newDefs, defRepo, wordRepo, userRepo);
+        .filter((m) => m.selected && !m.existsInDatabase);
+      await addDefinitionsWithOwner(userId, word, newDefs, defRepo, wordRepo);
 
       const removedDefIds = meanings
-        .filter((m) => !m.use && m.fromDb && typeof m.id === "number" && !isNaN(m.id))
-      await deleteDefinitionsOwnership(telegramId, word, removedDefIds, defRepo, wordRepo, userRepo);
+        .filter((m) => !m.selected && m.existsInDatabase && typeof m.id === "number" && !isNaN(m.id));
+      await deleteDefinitionsOwnership(userId, word, removedDefIds, defRepo, wordRepo);
 
-      return true;
+      return [true, word.id as number];
     } catch (error) {
       // todo logger
       this.deps.logger.error("create-def-presenter: saving word", error);
-      return false;
+      return [false, -1];
     }
   }
 }

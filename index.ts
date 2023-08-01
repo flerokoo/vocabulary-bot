@@ -3,10 +3,17 @@ import { initDb } from "./src/db/init-db";
 import { createBot } from "./src/bot/create-bot";
 import { getLogger } from "./src/utils/get-logger";
 import config from "./config";
+import { isProduction } from "./src/utils/is-production";
 
 (async function() {
+  const {
+    wordRepository,
+    defRepository,
+    userRepository,
+    tagRepository,
+    shutdown: shutdownDatabase
+  } = await initDb(config);
 
-  const { wordRepository, defRepository, userRepository, shutdown: shutdownDatabase } = await initDb(config);
   const logger = getLogger(config);
 
   const botToken = process.env.BOT_TOKEN;
@@ -21,6 +28,7 @@ import config from "./config";
     wordRepo: wordRepository,
     defRepo: defRepository,
     userRepo: userRepository,
+    tagRepo: tagRepository,
     logger
   });
 
@@ -47,5 +55,6 @@ import config from "./config";
   });
 
 
-  logger.log("Ready")
+  const mode = isProduction() ? "PRODUCTION" : "DEV";
+  logger.log(`Ready in ${mode} mode`);
 })();

@@ -4,7 +4,7 @@ import { Stream } from "stream";
 import { EventEmitter } from "events";
 
 export interface ContextConfigurator<T extends string, K> {
-  (ctx: BotContext<T, K>): void;
+  (ctx: BotContext<T, K>, chatId: ChatId): void;
 }
 
 export class Bot<TStateKey extends string, TPayload> extends EventEmitter {
@@ -19,28 +19,28 @@ export class Bot<TStateKey extends string, TPayload> extends EventEmitter {
     this.tg = new TelegramBot(token, { polling: true });
     this.tg.on("message", (msg) => this.onMessage(msg));
     this.tg.on("callback_query", (query) => this.onCallbackQuery(query));
-    const reportError = (err : any) => this.emit(err);
+    const reportError = (err: any) => this.emit(err);
     this.tg.on("error", reportError);
     this.tg.on("polling_error", reportError);
     this.contextConfigurator = contextConfigurator;
   }
 
   private onMessage(msg: TelegramBot.Message) {
-    this.getContext(msg.chat.id).onMessage(msg);
+    this.getContext(msg.chat.id).then(context => context.onMessage(msg));
   }
 
   private onCallbackQuery(query: CallbackQuery) {
-    this.getContext(query.from.id).onCallbacKQuery(query);
+    this.getContext(query.from.id).then(context => context.onCallbacKQuery(query));
   }
 
-  private createContext(chatId: ChatId) {
+  private async createContext(chatId: ChatId) {
     const context = new BotContext<TStateKey, TPayload>(this, chatId);
-    this.contextConfigurator(context);
+    await this.contextConfigurator(context, chatId);
     this.contexts[chatId] = context;
   }
 
-  private getContext(chatId: ChatId) {
-    if (!this.contexts[chatId]) this.createContext(chatId);
+  private async getContext(chatId: ChatId) {
+    if (!this.contexts[chatId]) await this.createContext(chatId);
     return this.contexts[chatId];
   }
 

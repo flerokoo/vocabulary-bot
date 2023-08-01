@@ -1,12 +1,15 @@
 import { DataHolder } from "../../utils/data/DataHolder";
+import { LearnMode } from "../states/SelectLearnModeState";
+import { ITag } from "../../entities/ITag";
 
 export type LearnStateModelData = {
-  mode: "definitions" | "words" | undefined,
-  current: { word: string, definition: string } | undefined,
+  mode: LearnMode,
+  current: { word: string, definitions: string[] } | undefined,
   showAnswer: boolean,
-  chatId: string,
+  userId: number,
   questionsInSession: number,
-  isActiveState: boolean
+  isActiveState: boolean,
+  tags: ITag[]
 }
 
 export class LearnStateModel extends DataHolder<LearnStateModelData> {
@@ -14,15 +17,15 @@ export class LearnStateModel extends DataHolder<LearnStateModelData> {
     this.setState({} as LearnStateModelData);
   }
 
-  setMode(mode: "definitions" | "words") {
+  setMode(mode: LearnMode) {
     this.setState({...this.data, mode})
   }
 
-  setUserId(id : string) {
-    this.setState({...this.data, chatId: id})
+  setUserId(id : number) {
+    this.setState({...this.data, userId: id})
   }
 
-  setCurrentQuestion(current: { word: string; definition: string }) {
+  setCurrentQuestion(current: { word: string; definitions: string[] }) {
     this.setState({...this.data, current, questionsInSession: this.questionsInSession + 1})
   }
 
@@ -36,5 +39,9 @@ export class LearnStateModel extends DataHolder<LearnStateModelData> {
 
   setActive(isActiveState: boolean) {
     this.setState({ ...this.data, isActiveState})
+  }
+
+  setTags(tags: ITag[]) {
+    this.setState({ ...this.data, tags})
   }
 }

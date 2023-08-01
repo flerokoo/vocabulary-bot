@@ -42,7 +42,7 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
       let msg: string;
       try {
         const header = "*List of your saved words:* \n";
-        const words = await getAllWordsByUser(this.context.chatId.toString(), this.deps.wordRepo);
+        const words = await getAllWordsByUser(this.userId, this.deps.wordRepo);
         msg = words.length === 0 ? "No saved words found" : header + words.map((w) => w.word).join("\n");
       } catch (error) {
         this.logger.error(error);
@@ -52,7 +52,7 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
     },
     "/remove": async (word: string) => {
       try {
-        await deleteWordOwnership(this.context.chatId.toString(), { word }, this.deps.wordRepo);
+        await deleteWordOwnership(this.userId, { word }, this.deps.wordRepo);
         await this.context.sendMessage("Removed this word from your dictionary");
       } catch (error) {
         this.logger.error(error);
@@ -61,14 +61,14 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
     },
     "/export": () => this.context.setState("export"),
     "/learn": async () => {
-      const word = await this.deps.defRepo.getRandomByTelegram(this.context.chatId.toString());
+      const word = await this.deps.defRepo.getRandomByUserId(this.userId);
       if (!word) return await this.context.sendMessage("Add some words first");
-      this.context.setState("learn");
+      this.context.setState("select-learn-mode");
     }
   };
 
-  constructor(private deps: BotDependencies) {
-    super();
+  constructor(userId: number, private deps: BotDependencies) {
+    super(userId);
   }
 
   enter() {
@@ -85,7 +85,7 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
     }
     const word = sanitize(message.text);
     if (word.length === 0) return;
-    const isNewWordForThisUser = await this.deps.wordRepo.isWordOwnedByTelegram(word, this.context.chatId.toString());
+    const isNewWordForThisUser = await this.deps.wordRepo.isWordOwnedByUserId(word, this.userId);
     if (isNewWordForThisUser) {
       this.defineWord(word);
     } else {

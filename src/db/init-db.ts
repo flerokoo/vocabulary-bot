@@ -2,33 +2,41 @@ import * as BetterSqlite3 from "better-sqlite3";
 import fsp from "node:fs/promises";
 import { SqliteWordRepository } from "./SqliteWordRepository";
 import { SqliteDefinitionRepository } from "./SqliteDefinitionRepository";
-import config from "../../config";
 import { SqliteUserRepository } from "./SqliteUserRepository";
+import { SqliteTagRepository } from "./SqliteTagRepository";
+import { isProduction } from "../utils/is-production";
 
-
-async function install(db: BetterSqlite3.Database) {
-  const query = await fsp.readFile("./install/install-db.sql", "utf-8");
-  db.exec(query);
+async function execFile(db: BetterSqlite3.Database, filePath: string) {
+  const ENCODING = "utf-8";
+  try {
+    const query = await fsp.readFile(filePath, ENCODING);
+    db.exec(query);
+  } catch (error) {
+    console.log(error);
+    process.exit(1);
+  }
 }
 
-async function populate(db: BetterSqlite3.Database) {
-  const query = await fsp.readFile("./install/populate-test-db.sql", "utf-8");
-  db.exec(query);
-}
+const install = async (db: BetterSqlite3.Database) =>
+  await execFile(db, "./install/install-db.sql");
+
+const populate = async (db: BetterSqlite3.Database) =>
+  await execFile(db, "./install/populate-test-db.sql");
 
 export async function initDb({ dbPath }: { dbPath: string }) {
-  const db = new BetterSqlite3.default(dbPath);
-  // const db = new BetterSqlite3.default(":memory:");
+  const db = new BetterSqlite3.default(":memory:");
+  // const db = new BetterSqlite3.default(dbPath);
   await install(db);
-  // await populate(db)
+  await populate(db);
 
   const wordRepository = new SqliteWordRepository(db);
   const userRepository = new SqliteUserRepository(db);
   const defRepository = new SqliteDefinitionRepository(db);
+  const tagRepository = new SqliteTagRepository(db);
 
   const shutdown = async () => {
     db.close();
   };
 
-  return { wordRepository, defRepository, userRepository, shutdown };
+  return { wordRepository, defRepository, userRepository, tagRepository, shutdown };
 }

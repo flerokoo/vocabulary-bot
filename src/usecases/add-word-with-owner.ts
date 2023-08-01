@@ -4,14 +4,13 @@ import { IWord } from "../entities/IWord";
 import { SanitizedWordString } from "../utils/sanitize";
 
 export async function addWordWithOwner(
-  ownerTelegramId: string,
+  userId: number,
   word: SanitizedWordString,
   userRepo: IUserRepository,
   wordRepo: IWordRepository
 ): Promise<IWord> {
   const wordId = await wordRepo.addWord(word);
-  const user = await userRepo.getOrAdd(ownerTelegramId);
-  await wordRepo.addWordOwnership(wordId, user.id);
+  await wordRepo.addWordOwnership(wordId, userId);
   return {
     id: wordId,
     word

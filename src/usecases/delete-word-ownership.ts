@@ -2,11 +2,11 @@ import { IWordRepository } from "../db/IWordRepository";
 import { IWord } from "../entities/IWord";
 
 export async function deleteWordOwnership(
-  ownerTelegramId: string,
+  userId: number,
   { word }: IWord,
   wordRepo: IWordRepository
 ) {
-  await wordRepo.removeOwnershipByWordAndTelegram(word, ownerTelegramId);
+  await wordRepo.removeOwnershipByWordAndUserId(word, userId);
 }
 
 

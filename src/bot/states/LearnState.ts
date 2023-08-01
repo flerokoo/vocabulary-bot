@@ -4,28 +4,28 @@ import { BotStateId } from "./BotStateId";
 import { ILearnPresenter } from "../presenters/ILearnPresenter";
 import { ILearnView } from "../views/ILearnView";
 import { AsyncQueue } from "../../utils/AsyncQueue";
+import { LearnMode } from "./SelectLearnModeState";
+import { EXIT_QUERY_DATA, SHOW_ANSWER_QUERY_DATA, NEXT_PAGE_QUERY_DATA } from "../common/query-data-constants";
+import { ITag } from "../../entities/ITag";
 
 
-export type LearnStatePayload = void;
-const NEXT_QD = "next";
-const SET_DEF_MODE_QD = "def_mode";
-const SET_WORD_MODE_QD = "word_mode";
-const SHOW_ANSWER_QD = "show_answer";
-const EXIT_QD = "exit";
+export type LearnStatePayload = { mode: LearnMode, tags: ITag[] };
 
 export class LearnState
   extends AbstractState<BotStateId, LearnStatePayload, void>
   implements ILearnView {
   private mainView!: TelegramBot.Message | undefined;
-  private mainViewPromise: Promise<void | TelegramBot.Message> | undefined;
   private updateQueue: AsyncQueue = new AsyncQueue();
 
-  constructor(private presenter: ILearnPresenter) {
-    super();
+  constructor(userId: number, private presenter: ILearnPresenter) {
+    super(userId);
   }
 
   async enter(payload: LearnStatePayload) {
-    this.presenter.onShow(payload, this.context.chatId.toString());
+    this.updateQueue.add(async () => {
+      this.mainView = await this.context.sendMessage("Loading...");
+    });
+    this.presenter.onShow(payload, this.userId);
   }
 
   exit() {
@@ -41,90 +41,49 @@ export class LearnState
     const answer = (text: string) => this.context.answerCallbackQuery(
       query.id, { text, callback_query_id: query.id });
 
-    if (query.data === EXIT_QD) {
+    if (query.data === EXIT_QUERY_DATA) {
       await answer("Good job");
       return this.context.setState("main");
     }
 
-    const setModeData = [SET_DEF_MODE_QD, SET_WORD_MODE_QD] as string[];
-    if (setModeData.indexOf(query.data) > -1) {
-      await answer("Learning by definitions");
-      return this.presenter.onModeRequested(query.data === SET_DEF_MODE_QD ? "definitions" : "words");
-    }
-
-    if (query.data === NEXT_QD) {
+    if (query.data === NEXT_PAGE_QUERY_DATA) {
       await answer("Moving on...");
       return this.presenter.onNextQuestionRequest();
     }
 
-    if (query.data === SHOW_ANSWER_QD) {
+    if (query.data === SHOW_ANSWER_QUERY_DATA) {
       await answer("Showing answer");
       return this.presenter.onShowAnswerRequest();
     }
 
   }
 
-  private async ensureView() {
-    if (this.mainView) return Promise.resolve();
-    if (this.mainViewPromise) return this.mainViewPromise;
-    this.mainViewPromise = this.context.sendMessage("Loading...").then(msg => {
-      this.mainView = msg;
-      this.mainViewPromise = undefined;
-    });
-    return this.mainViewPromise;
-  }
-
   async cleanup() {
     this.updateQueue.clear();
-    if (!this.mainView) return;
-    const mainView = this.mainView;
-    this.mainView = undefined;
     this.updateQueue.add(async () => {
-      await this.context.deleteMessage(mainView.message_id);
+      if (!this.mainView) return;
+      await this.context.deleteMessage(this.mainView.message_id);
     });
   }
 
-  async showModePrompt() {
-    const inline_keyboard: InlineKeyboardButton[][] = [
-      [
-        {
-          text: "📘 Words",
-          callback_data: SET_WORD_MODE_QD
-        },
-        {
-          text: "📖 Definitions",
-          callback_data: SET_DEF_MODE_QD
-        }
-      ],
-      [{
-        text: "❌ Cancel",
-        callback_data: EXIT_QD
-      }]
-    ];
-    this.updateQueue.add(async () => {
-      if (this.mainView) return;
-      this.mainView = await this.context.sendMessage("Select learning mode", {
-        reply_markup: { inline_keyboard }
-      });
-    });
-  }
 
-  async showQuestion(mode: "words" | "definitions",
-                     current: { word: string; definition: string } | undefined,
+  async showQuestion(mode: LearnMode,
+                     current: { word: string; definitions: string[] } | undefined,
                      showAnswer: boolean, questionsInSession: number): Promise<void> {
     if (!current) return;
-    await this.ensureView();
 
     const inline_keyboard: InlineKeyboardButton[][] = [];
-    inline_keyboard.push([{ text: "➡️ Next", callback_data: NEXT_QD }]);
+    inline_keyboard.push([{ text: "➡️ Next", callback_data: NEXT_PAGE_QUERY_DATA }]);
     if (!showAnswer)
-      inline_keyboard[0].unshift({ text: "💡️ Show answer", callback_data: SHOW_ANSWER_QD });
-    inline_keyboard.push([{ text: "❌ Exit", callback_data: EXIT_QD }]);
+      inline_keyboard[0].unshift({ text: "💡️ Show answer", callback_data: SHOW_ANSWER_QUERY_DATA });
+    inline_keyboard.push([{ text: "↩️ Exit", callback_data: EXIT_QUERY_DATA }]);
 
 
-    let text = `*Question:* ` + (mode === "words" ? current.word : current.definition);
+    const word = "✴️ " + current.word;
+    const definitions = current.definitions.map( _ => "❇️ " + _).join("\n");
+    let text = `*Question:*\n ` + (mode === "Words" ? word : definitions);
     if (showAnswer)
-      text += "\n\n*Answer:* " + (mode === "words" ? current.definition : current.word);
+      text += "\n\n*Answer:*\n" + (mode === "Words" ? definitions : word );
 
     text += "\n\n*Words in this session:* " + questionsInSession;
 

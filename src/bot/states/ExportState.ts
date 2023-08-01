@@ -20,8 +20,8 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
 
   private mainView: TelegramBot.Message | undefined;
 
-  constructor(private deps: BotDependencies) {
-    super();
+  constructor(userId: number, private deps: BotDependencies) {
+    super(userId);
   }
 
   async enter() {
@@ -77,13 +77,13 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
   }
 
   async getData() {
-    const userId = this.context.chatId.toString();
-    const words = await this.deps.wordRepo.getAllByTelegramId(userId);
+    const userId = this.userId;
+    const words = await this.deps.wordRepo.getAllByUserId(userId);
     const output: { word: string, meanings: string[] }[] = [];
 
     const promises = [];
     for (const { word, id } of words) {
-      const p = this.deps.defRepo.getAllByWordIdAndTelegram(id as number, userId).then(def => {
+      const p = this.deps.defRepo.getAllByWordIdAndUserId(id as number, userId).then(def => {
         output.push({
           word,
           meanings: def.map(d => d.definition)

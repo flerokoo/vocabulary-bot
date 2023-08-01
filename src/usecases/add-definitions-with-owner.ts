@@ -1,27 +1,24 @@
 import { IWordRepository } from "../db/IWordRepository";
 import { IDefinitionRepository } from "../db/IDefinitionRepository";
-import { IUserRepository } from "../db/IUserRepository";
 import { IMeaning } from "../entities/IMeaning";
 import { IWord } from "../entities/IWord";
 
 export async function addDefinitionsWithOwner(
-  ownerTelegramId: string,
+  userId: number,
   word: IWord,
   definitions: IMeaning[],
   defRepo: IDefinitionRepository,
-  wordRepo: IWordRepository,
-  userRepo: IUserRepository
+  wordRepo: IWordRepository
 ) {
   const wordId = await wordRepo.addWord(word.word);
-  const user = await userRepo.getOrAdd(ownerTelegramId);
 
-  await wordRepo.addWordOwnership(wordId, user.id);
+  await wordRepo.addWordOwnership(wordId, userId);
 
   const definitionIds = await Promise.all(definitions
     .map(m => defRepo.add(wordId, m.definition)));
 
   await Promise.all(definitionIds.map(id =>
-    defRepo.addOwnership(id, user.id)));
+    defRepo.addOwnership(id, userId)));
 
   return definitionIds;
 }

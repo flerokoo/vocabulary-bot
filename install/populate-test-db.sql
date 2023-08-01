@@ -11,8 +11,8 @@ INSERT INTO Words (id, word) VALUES
 INSERT INTO WordOwnership (wordId, userId) VALUES
     (1, 0), -- me
     (2, 0),
+    (3, 0),
     (1, 1), -- other user
-    (3, 1),
     (4, 1);
 
 INSERT INTO Definitions (id, wordId, definition) VALUES
@@ -34,4 +34,20 @@ INSERT INTO DefinitionOwnership (definitionId, userId) VALUES
     (5, 0),
     (6, 0),
     (7, 0);
+
+
+INSERT INTO Tags (id, tag) VALUES
+    (0, 'eng'),
+    (1, 'rus');
+
+INSERT INTO TagOwnership (id, tagId, userId) VALUES
+    (0, 0, 0),
+    (1, 1, 0);
+
+INSERT INTO TagToWordRelation (id, tagId, wordId, userId) VALUES
+    (0, 0, 1, 0),
+    (1, 0, 2, 0),
+    (2, 1, 3, 0);
+
+
 

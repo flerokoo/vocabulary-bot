@@ -1,7 +1,7 @@
 import { CreateDefinitionStatePayload } from "../states/CreateDefinitionState";
 
 export interface ICreateDefinitionPresenter {
-  onShow(payload: CreateDefinitionStatePayload, userId: string): void;
+  onShow(payload: CreateDefinitionStatePayload, userId: number): void;
 
   addDefinition(text: string): void;
 
@@ -9,5 +9,5 @@ export interface ICreateDefinitionPresenter {
 
   reset(): void;
 
-  onContinue(): Promise<boolean>;
+  onContinue(): Promise<[boolean, number]>;
 }

@@ -11,37 +11,25 @@ export class LearnPresenter extends AbstractPresenter<ILearnView> implements ILe
     private deps: BotDependencies) {
     super();
     model.subscribe((data) => {
-      this.updateView(data)
+      this.updateView(data);
     });
   }
 
   private async updateView(data: LearnStateModelData) {
-    if (!data.isActiveState) return;
-
-    if (data.mode === undefined) {
-      return this.view.showModePrompt();
-    }
-
-    if (!data.current) {
-      return this.loadNewQuestion();
-    }
-
-    await this.view.showQuestion(data.mode, data.current, data.showAnswer, data.questionsInSession);
+    await this.view?.showQuestion(data.mode, data.current, data.showAnswer, data.questionsInSession);
   }
 
-  onShow(payload: LearnStatePayload, userId: string): void {
+  onShow(payload: LearnStatePayload, userId: number): void {
     this.model.setUserId(userId);
     this.model.setActive(true);
-    this.updateView(this.model.data);
+    this.model.setMode(payload.mode);
+    this.model.setTags(payload.tags);
+    this.loadNewQuestion();
   }
 
   reset(): void {
     this.model.cleanup();
     this.view.cleanup();
-  }
-
-  onModeRequested(mode: "definitions" | "words"): void {
-    this.model.setMode(mode);
   }
 
   async onNextQuestionRequest(): Promise<any> {
@@ -54,11 +42,16 @@ export class LearnPresenter extends AbstractPresenter<ILearnView> implements ILe
 
 
   private async loadNewQuestion() {
-    const rand = await this.deps.defRepo.getRandomByTelegram(this.model.data.chatId);
-    if (!rand) {
-      this.view.onNoQuestionsFound();
+    const { userId, tags } = this.model.data;
+    const { word } = await this.deps.wordRepo.getRandomByUserIdAndTags(userId, tags);
+
+    if (!word) {
+      return this.view.onNoQuestionsFound();
     }
+
+    const data = await this.deps.defRepo.getAllByWordAndUserId(word, this.model.data.userId);
+    const definitions = data.map(_ => _.definition);
     this.model.setShowAnswer(false);
-    this.model.setCurrentQuestion(rand);
+    this.model.setCurrentQuestion({ word, definitions });
   }
 }

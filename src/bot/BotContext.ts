@@ -72,4 +72,10 @@ export class BotContext<TStateKey extends string, TPayload> {
                fileOptions?: TelegramBot.FileOptions) {
     return this.bot.sendDocument(this.chatId, doc, options, fileOptions);
   }
+
+  dispose() {
+    for (const key of Object.keys(this.states)) {
+      this.states[key].dispose();
+    }
+  }
 }

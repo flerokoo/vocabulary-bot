@@ -7,9 +7,8 @@ import { ICreateDefinitionView } from "../views/ICreateDefinitionView";
 import { CreateDefinitionStateMeaning } from "../data/CreateDefinitionModel";
 import { AsyncQueue } from "../../utils/AsyncQueue";
 import { ILogger } from "../../utils/ILogger";
-
-export const CONTINUE_QUERY_DATA = "continue";
-export const CANCEL_QUERY_DATA = "cancel";
+import { CANCEL_QUERY_DATA, CONTINUE_QUERY_DATA } from "../common/query-data-constants";
+import { groupKeyboardButtons } from "../common/group-keyboard-buttons";
 
 export type CreateDefinitionStatePayload = {
   readonly word: string;
@@ -18,20 +17,21 @@ export type CreateDefinitionStatePayload = {
 
 export class CreateDefinitionState
   extends AbstractState<BotStateId, CreateDefinitionStatePayload, PayloadUnion>
-  implements ICreateDefinitionView
-{
-  private loader!: TelegramBot.Message | undefined;
-  private mainViewPromise!: Promise<TelegramBot.Message> | undefined;
+  implements ICreateDefinitionView {
   private mainView!: TelegramBot.Message | undefined;
-  private updateQueue : AsyncQueue = new AsyncQueue();
+  private updateQueue: AsyncQueue = new AsyncQueue();
 
-  constructor(private presenter: ICreateDefinitionPresenter,
-              private logger : ILogger) {
-    super();
+  constructor(userId: number,
+              private presenter: ICreateDefinitionPresenter,
+              private logger: ILogger) {
+    super(userId);
   }
 
   async enter(payload: CreateDefinitionStatePayload) {
-    this.presenter.onShow(payload, this.context.chatId.toString());
+    this.presenter.onShow(payload, this.userId);
+    this.updateQueue.add(async () => {
+      this.mainView = await this.context.sendMessage("Retrieving definitions...");
+    });
   }
 
   exit() {
@@ -49,9 +49,12 @@ export class CreateDefinitionState
       query.id, { text, callback_query_id: query.id });
 
     if (query.data === CONTINUE_QUERY_DATA) {
-      const success = await this.presenter.onContinue();
-      await answer(success ? "Saved successfully" : "Some error occurred while saving");
-      this.context.setState("main");
+      const [success, wordId] = await this.presenter.onContinue();
+      await answer(success ? "Moving on..." : "Some error occurred while saving");
+      if (success)
+        this.context.setState("assign-tags", { wordId });
+      else
+        this.context.setState("main");
       return;
     }
 
@@ -65,116 +68,51 @@ export class CreateDefinitionState
     await answer("Toggled");
   }
 
-  async showLoader() {
-    this.loader = await this.context.sendMessage("Retrieving definitions...");
-  }
-
-  async hideLoader() {
-    if (!this.loader) return;
-    try {
-      const loader = this.loader;
-      this.loader = undefined;
-      await this.context.deleteMessage(loader.message_id);
-    } catch (e) {
-      this.logger.error("create-def-state: loader hide error", e);
-    }
-  }
-
   async showDefinitions(meanings: CreateDefinitionStateMeaning[]) {
     const { message, reply_markup } = this.formatMessage(meanings);
-
-    if (this.mainView) {
-      const mainView = await this.getOrCreateMainView(message, reply_markup);
-      const message_id = mainView.message_id;
-
-      this.updateQueue.add(async () => {
-        await this.context.editMessageText(message, {
-          message_id,
-          parse_mode: "Markdown",
-          reply_markup,
-        })
+    this.updateQueue.add(async () => {
+      await this.context.editMessageText(message, {
+        message_id: this.mainView?.message_id,
+        parse_mode: "Markdown",
+        reply_markup
       });
-    } else {
-      await this.getOrCreateMainView(message, reply_markup);
-    }
+    });
   }
 
   private formatMessage(
     meanings: CreateDefinitionStateMeaning[],
-    buttonsPerRow = 3,
+    buttonsPerRow = 3
   ): { message: string; reply_markup: InlineKeyboardMarkup } {
     const header = `*Here's a list of available definitions. \nWrite a message(s) to add new definition(s) manually* \n\n`;
     const header0 = `*No definitions found on the internet. Write a message to add new definition*`;
-    const messages = meanings.map((m, i) => `${i + 1}) ${m.use ? "✅" : ""} ${m.definition}`);
+    const messages = meanings.map((m, i) => `${i + 1}) ${m.selected ? "✅" : ""} ${m.definition}`);
     const message = (meanings.length > 0 ? header : header0) + messages.join("\n\n");
-    const buttons: InlineKeyboardButton[][] = [];
-    let cur: InlineKeyboardButton[] = [];
+    const buttons: InlineKeyboardButton[] = [];
     for (let i = 0; i < meanings.length; i++) {
-      if (cur.length == buttonsPerRow) {
-        buttons.push(cur);
-        cur = [];
-      }
-      cur.push({
-        text: `${meanings[i].use ? "✅" : "❌"} ${i + 1}`,
-        callback_data: i.toString(),
+      buttons.push({
+        text: `${meanings[i].selected ? "✅" : "❌"} ${i + 1}`,
+        callback_data: i.toString()
       });
     }
 
-    if (cur.length > 0) buttons.push(cur);
+    const inline_keyboard = groupKeyboardButtons(buttons, buttonsPerRow);
 
     // add continue button if some of the definitions selected
-    if (meanings.some((m) => m.use))
-      buttons.push([
-        {
-          text: "Save",
-          callback_data: CONTINUE_QUERY_DATA,
-        },
-      ]);
+    if (meanings.some((m) => m.selected))
+      inline_keyboard.push([{ text: "Continue", callback_data: CONTINUE_QUERY_DATA }]);
 
     // add cancel button
-    buttons.push([
-      {
-        text: "Cancel",
-        callback_data: CANCEL_QUERY_DATA,
-      },
-    ]);
+    inline_keyboard.push([{ text: "Cancel", callback_data: CANCEL_QUERY_DATA }]);
 
-    return { message, reply_markup: { inline_keyboard: buttons } };
-  }
-
-  private async getOrCreateMainView(message: string, reply_markup: InlineKeyboardMarkup): Promise<TelegramBot.Message> {
-    if (this.mainView) return Promise.resolve(this.mainView);
-    if (this.mainViewPromise) return this.mainViewPromise;
-    this.mainViewPromise = this.context
-      .sendMessage(message, {
-        reply_markup,
-        parse_mode: "Markdown",
-      })
-      .then((result) => {
-        this.mainView = result;
-        this.mainViewPromise = undefined;
-        return result;
-      });
-    return this.mainViewPromise;
+    return { message, reply_markup: { inline_keyboard } };
   }
 
   async cleanup() {
     this.updateQueue.clear();
     this.updateQueue.add(async () => {
-      const promises = [];
-      promises.push(this.hideLoader());
-
-      if (this.mainView) {
-        const mainView = this.mainView;
-        this.mainView = undefined;
-        promises.push(this.context.deleteMessage(mainView.message_id));
-      }
-
-      try {
-        await Promise.all(promises);
-      } catch (e: any) {
-        this.logger.error("create-def-state: cleanup error", e);
-      }
+      if (!this.mainView) return;
+      console.log("clean")
+      await this.context.deleteMessage(this.mainView.message_id);
     });
   }
 
