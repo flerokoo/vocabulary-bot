@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon -x \"clear; ts-node\" index.ts",
-    "tsc": "tsc -P tsconfig.json"
+    "tsc": "tsc -P tsconfig.json",
+    "docker:build": "npm run tsc; docker image build .",
+    "docker:run": "docker run"
   },
   "keywords": [],
   "author": "",

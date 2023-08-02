@@ -16,3 +16,8 @@ Simplified scheme of application architecture/layers
 ![Database structure](./images/db.png)
 
 # How to run
+
+```shell
+npm run docker:build -- --tag=IMAGE_TAG
+npm run docker:run -- --env BOT_TOKEN=YOUR_BOT_TOKEN --env NODE_ENV=production IMAGE_TAG
+```
