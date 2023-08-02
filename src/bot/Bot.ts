@@ -19,9 +19,9 @@ export class Bot<TStateKey extends string, TPayload> extends EventEmitter {
     this.tg = new TelegramBot(token, { polling: true });
     this.tg.on("message", (msg) => this.onMessage(msg));
     this.tg.on("callback_query", (query) => this.onCallbackQuery(query));
-    const reportError = (err: any) => this.emit(err);
-    this.tg.on("error", reportError);
-    this.tg.on("polling_error", reportError);
+    const reportError = (errorName: string) => (...err: any[]) => this.emit(errorName, ...err);
+    this.tg.on("error", reportError("error"));
+    this.tg.on("polling_error", reportError("polling_error"));
     this.contextConfigurator = contextConfigurator;
   }
 
