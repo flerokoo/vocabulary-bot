@@ -7,6 +7,10 @@ Designed following the best software architecture principles, the bot ensures ea
 ### [Try it here](https://t.me/improve_vocabulary_9000_bot)
 
 # Scheme
+Simplified scheme of application architecture/layers
+
+![Architecture](./images/scheme.png)
+
 
 # Database structure
 ![Database structure](./images/db.png)
