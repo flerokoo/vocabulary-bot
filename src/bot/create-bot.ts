@@ -83,5 +83,6 @@ const getContextConfigurator =
 export function createBot(token: string, dependencies: BotDependencies) {
   const bot = new Bot<BotStateId, PayloadUnion>(token, getContextConfigurator(dependencies));
   bot.addListener("error", (err) => dependencies.logger.error(err));
+  bot.addListener("polling_error", (err) => dependencies.logger.error(err));
   return bot;
 }
