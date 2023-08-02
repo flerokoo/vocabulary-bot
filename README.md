@@ -7,7 +7,12 @@ Designed following the best software architecture principles, the bot ensures ea
 ### [Try it here](https://t.me/improve_vocabulary_9000_bot)
 
 # Scheme
-Simplified scheme of application architecture/layers
+Simplified scheme of application architecture/layers. 
+
+Highlights:
+* Layered architecture
+* Complex bot states are made with passive-view _MVP pattern_ in mind
+* General purpose telegram bot framework. Easily extendable and can be used for any application
 
 ![Architecture](./images/scheme.png)
 
