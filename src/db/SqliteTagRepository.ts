@@ -1,6 +1,7 @@
 import * as BetterSqlite3 from "better-sqlite3";
 import { ITagRepository } from "./ITagRepository";
 import { ITag } from "../entities/ITag";
+import { reportAsyncRejection } from "../utils/catch-async-rejection-decorator";
 
 export class SqliteTagRepository implements ITagRepository {
   private addOwnershipSt!: BetterSqlite3.Statement<unknown[]>;
@@ -14,6 +15,7 @@ export class SqliteTagRepository implements ITagRepository {
 
   constructor(private db: BetterSqlite3.Database) {}
 
+  @reportAsyncRejection
   addOwnership(tagId: number, userId: number): Promise<void> {
     this.addOwnershipSt ??= this.db.prepare(`
       INSERT INTO TagOwnership(tagId, userId) VALUES (?, ?)
@@ -22,6 +24,7 @@ export class SqliteTagRepository implements ITagRepository {
     return Promise.resolve();
   }
 
+  @reportAsyncRejection
   assignTag(userId: number, tagId: number, wordId: number): Promise<void> {
     this.assignTagToWordSt ??= this.db.prepare(`
       INSERT INTO TagToWordRelation(tagId, wordId, userId) VALUES (?, ?, ?)
@@ -30,6 +33,7 @@ export class SqliteTagRepository implements ITagRepository {
     return Promise.resolve();
   }
 
+  @reportAsyncRejection
   getAllTagsByUserId(userId: number): Promise<ITag[]> {
     this.getAllTagsByUserIdSt ??= this.db.prepare(`
       SELECT t.id, t.tag FROM Tags AS t
@@ -40,6 +44,7 @@ export class SqliteTagRepository implements ITagRepository {
     return Promise.resolve(result as ITag[]);
   }
 
+  @reportAsyncRejection
   getOrAddTag(tag: string): Promise<ITag> {
     this.getOrAddTagSt ??= this.db.prepare(`
       INSERT OR IGNORE INTO Tags(tag) VALUES (?)
@@ -54,6 +59,7 @@ export class SqliteTagRepository implements ITagRepository {
     return Promise.resolve(tagObject as ITag);
   }
 
+  @reportAsyncRejection
   unassignTag(userId: number, tagId: number, wordId: number) {
     this.unassignTagSt ??= this.db.prepare(`
       DELETE FROM TagToWordRelation WHERE tagId=? AND wordId=? AND userId=?
@@ -62,6 +68,7 @@ export class SqliteTagRepository implements ITagRepository {
     return Promise.resolve();
   }
 
+  @reportAsyncRejection
   isTagAssigned(userId: number, tagId: number, wordId: number): Promise<boolean> {
     this.isTagAssignedSt ??= this.db.prepare(`
       SELECT * FROM TagToWordRelation WHERE tagId=? AND wordId=? AND userId=?
@@ -70,6 +77,7 @@ export class SqliteTagRepository implements ITagRepository {
     return Promise.resolve(Boolean(result));
   }
 
+  @reportAsyncRejection
   getAllTagsByUserIdAndWordId(wordId: number, userId: number): Promise<ITag[]> {
     this.getAllTagsByUserIdAndWordIdSt ??= this.db.prepare(`
       SELECT t.id, t.tag FROM Tags AS t

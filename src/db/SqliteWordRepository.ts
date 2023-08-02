@@ -2,6 +2,7 @@ import * as BetterSqlite3 from "better-sqlite3";
 import { IWordRepository } from "./IWordRepository";
 import { IWord } from "../entities/IWord";
 import { ITag } from "../entities/ITag";
+import { reportAsyncRejection } from "../utils/catch-async-rejection-decorator";
 
 export class SqliteWordRepository implements IWordRepository {
   private addSt!: BetterSqlite3.Statement<unknown[]>;
@@ -17,6 +18,7 @@ export class SqliteWordRepository implements IWordRepository {
   constructor(private readonly db: BetterSqlite3.Database) {
   }
 
+  @reportAsyncRejection
   async addWord(word: string): Promise<number> {
     this.addSt ??= this.db.prepare(`INSERT OR IGNORE INTO Words (word) VALUES (?)`);
     const existing = await this.getByWord(word);
@@ -25,6 +27,7 @@ export class SqliteWordRepository implements IWordRepository {
     return result.lastInsertRowid as number;
   }
 
+  @reportAsyncRejection
   addWordOwnership(wordId: number, userId: number) {
     this.addWordOwnershipSt ??= this.db.prepare(`INSERT INTO 
         WordOwnership(userId, wordId) VALUES(?, ?)`);
@@ -32,12 +35,14 @@ export class SqliteWordRepository implements IWordRepository {
     return Promise.resolve(result.lastInsertRowid as number);
   }
 
+  @reportAsyncRejection
   getByWord(word: string): Promise<IWord | null> {
     this.getByWordSt ??= this.db.prepare(`SELECT * FROM Words WHERE word=? LIMIT 1`);
     const result = this.getByWordSt.get([word]);
     return Promise.resolve(result as IWord);
   }
 
+  @reportAsyncRejection
   getAllByUserId(userId: number): Promise<IWord[]> {
     this.getAllByUserSt ??= this.db.prepare(`
         SELECT W.id, W.word FROM Words W 
@@ -47,6 +52,7 @@ export class SqliteWordRepository implements IWordRepository {
     return Promise.resolve(result as IWord[]);
   }
 
+  @reportAsyncRejection
   removeOwnershipByWordAndUserId(word: string, userId: number): Promise<void> {
     this.removeOwnershipByWordAndUserSt ??= this.db.prepare(`
         DELETE FROM WordOwnership AS WO
@@ -58,6 +64,7 @@ export class SqliteWordRepository implements IWordRepository {
     return Promise.resolve();
   }
 
+  @reportAsyncRejection
   isWordOwnedByUserId(word: string, userId: number): Promise<boolean> {
     this.isWordOwnedByUserSt ??= this.db.prepare(`
         SELECT * FROM WordOwnership AS WO
@@ -68,6 +75,7 @@ export class SqliteWordRepository implements IWordRepository {
     return Promise.resolve(Boolean(result));
   }
 
+  @reportAsyncRejection
   getRandomByUserId(id: number): Promise<IWord> {
     this.getRandomByUserIdSt ??= this.db.prepare(`
       SELECT w.word, w.id  FROM Words w
@@ -80,6 +88,7 @@ export class SqliteWordRepository implements IWordRepository {
     return Promise.resolve(result as IWord);
   }
 
+  @reportAsyncRejection
   getRandomByUserIdAndTags(userId: number, tags: ITag[]): Promise<IWord> {
 
     this.getRandomByUserIdAndTagsSt ??= this.db.prepare(`
@@ -98,6 +107,7 @@ export class SqliteWordRepository implements IWordRepository {
 
   }
 
+  @reportAsyncRejection
   getAllByUserIdAndTags(userId: number, tags: ITag[]): Promise<IWord[]> {
     this.getAllByUserIdAndTagsSt ??= this.db.prepare(`
       SELECT w.word, w.id  FROM Words w
