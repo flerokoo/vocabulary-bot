@@ -28,7 +28,7 @@ export class CreateDefinitionsPresenter
     this.model.setWord(payload.word);
     this.model.setUserId(userId);
     if (payload.isNewWord) {
-      const defs = await this.deps.defProvider(payload.word);
+      const defs = await this.loadDefinitions(payload.word)
       this.model.setDefinitions(defs);
     } else {
       const defs = await this.deps.defRepo.getAllByWordAndUserId(payload.word, userId);
@@ -39,6 +39,16 @@ export class CreateDefinitionsPresenter
       }));
       this.model.setDefinitions(defsUsed);
     }
+  }
+
+  private async loadDefinitions(word: string) {
+    try {
+      const defs = await this.deps.defProvider(word);
+      return defs;
+    } catch (err : any) {
+      this.deps.logger.error(`Error when loading definitions`, err)
+    }
+    return [];
   }
 
   toggleDefinitionUsage(data: string): void {
