@@ -11,7 +11,12 @@ export type AssignTagsStateModelData = {
 
 export class AssignTagsStateModel extends DataHolder<AssignTagsStateModelData> {
   addNewTag(tag: ITag) {
-    this.data.tags.push({ tag, selected: true });
+    const existing = this.data.tags.find(_ => _.tag.id === tag.id);
+    if (!existing) {
+      this.data.tags.push({ tag, selected: true });
+    } else {
+      existing.selected = true;
+    }
     this.setState(this.data);
   }
 
