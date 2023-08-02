@@ -9,14 +9,14 @@ import { addDefinitionsWithOwner } from "../../usecases/add-definitions-with-own
 import { deleteDefinitionsOwnership } from "../../usecases/delete-definitions-ownership";
 import { IWord } from "../../entities/IWord";
 import { SanitizedWordString } from "../../utils/sanitize";
+import { IMeaning } from "../../entities/IMeaning";
 
 export class CreateDefinitionsPresenter
   extends AbstractPresenter<ICreateDefinitionView>
-  implements ICreateDefinitionPresenter
-{
+  implements ICreateDefinitionPresenter {
   constructor(
     private model: CreateDefinitionModel,
-    private deps: BotDependencies,
+    private deps: BotDependencies
   ) {
     super();
     model.subscribe((data) => {
@@ -28,14 +28,14 @@ export class CreateDefinitionsPresenter
     this.model.setWord(payload.word);
     this.model.setUserId(userId);
     if (payload.isNewWord) {
-      const defs = await this.loadDefinitions(payload.word)
+      const defs = await this.loadDefinitions(payload.word);
       this.model.setDefinitions(defs);
     } else {
       const defs = await this.deps.defRepo.getAllByWordAndUserId(payload.word, userId);
       const defsUsed: CreateDefinitionStateMeaning[] = defs.map((d) => ({
         ...d,
         selected: true,
-        existsInDatabase: true,
+        existsInDatabase: true
       }));
       this.model.setDefinitions(defsUsed);
     }
@@ -44,11 +44,25 @@ export class CreateDefinitionsPresenter
   private async loadDefinitions(word: string) {
     try {
       const defs = await this.deps.defProvider(word);
-      return defs;
-    } catch (err : any) {
-      this.deps.logger.error(`Error when loading definitions`, err)
+      return this.trimDefinitions(defs);
+    } catch (err: any) {
+      this.deps.logger.error(`Error when loading definitions`, err);
     }
     return [];
+  }
+
+  private trimDefinitions(defs: IMeaning[]) {
+    const MAX = 2500;
+    const out = [];
+    let totalLength = 0;
+    for (const obj of defs) {
+      const { definition } = obj;
+      if (definition.length + totalLength >= MAX) break;
+      out.push(obj);
+      totalLength += definition.length;
+    }
+    console.log(totalLength)
+    return out;
   }
 
   toggleDefinitionUsage(data: string): void {
@@ -74,10 +88,10 @@ export class CreateDefinitionsPresenter
       await addDefinitionsWithOwner(userId, word, newDefs, defRepo, wordRepo);
 
       const removedDefIds = meanings.filter(
-        (m) => !m.selected && m.existsInDatabase && typeof m.id === "number" && !isNaN(m.id),
+        (m) => !m.selected && m.existsInDatabase && typeof m.id === "number" && !isNaN(m.id)
       );
       await deleteDefinitionsOwnership(userId, word, removedDefIds, defRepo, wordRepo);
-      this.deps.logger.log(`Saved or updated word`, {userId, word})
+      this.deps.logger.log(`Saved or updated word`, { userId, word });
       return [true, word.id as number];
     } catch (error) {
       this.deps.logger.error("create-def-presenter: saving word", error);
@@ -85,3 +99,4 @@ export class CreateDefinitionsPresenter
     }
   }
 }
+

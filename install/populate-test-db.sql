@@ -1,21 +1,21 @@
 
 -- ADD VALUES
-INSERT INTO Users(id, telegram) VALUES (0, '247768455'), (1, '1234');
+INSERT OR IGNORE INTO Users(id, telegram) VALUES (0, '247768455'), (1, '1234');
 
-INSERT INTO Words (id, word) VALUES
+INSERT OR IGNORE INTO Words (id, word) VALUES
     (1, 'word1'),
     (2, 'word2'),
     (3, 'word3'),
     (4, 'word4');
 
-INSERT INTO WordOwnership (wordId, userId) VALUES
+INSERT OR IGNORE INTO WordOwnership (wordId, userId) VALUES
     (1, 0), -- me
     (2, 0),
     (3, 0),
     (1, 1), -- other user
     (4, 1);
 
-INSERT INTO Definitions (id, wordId, definition) VALUES
+INSERT OR IGNORE INTO Definitions (id, wordId, definition) VALUES
     (0, 1, 'word1 def1'),
     (1, 1, 'word1 def2'),
     (2, 2, 'word2 def1'),
@@ -25,7 +25,7 @@ INSERT INTO Definitions (id, wordId, definition) VALUES
     (6, 4, 'word4 def1'),
     (7, 4, 'word4 def2');
 
-INSERT INTO DefinitionOwnership (definitionId, userId) VALUES
+INSERT OR IGNORE INTO DefinitionOwnership (definitionId, userId) VALUES
     (0, 0),
     (1, 0),
     (2, 0),
@@ -36,15 +36,15 @@ INSERT INTO DefinitionOwnership (definitionId, userId) VALUES
     (7, 0);
 
 
-INSERT INTO Tags (id, tag) VALUES
+INSERT OR IGNORE INTO Tags (id, tag) VALUES
     (0, 'eng'),
     (1, 'rus');
 
-INSERT INTO TagOwnership (id, tagId, userId) VALUES
+INSERT OR IGNORE INTO TagOwnership (id, tagId, userId) VALUES
     (0, 0, 0),
     (1, 1, 0);
 
-INSERT INTO TagToWordRelation (id, tagId, wordId, userId) VALUES
+INSERT OR IGNORE INTO TagToWordRelation (id, tagId, wordId, userId) VALUES
     (0, 0, 1, 0),
     (1, 0, 2, 0),
     (2, 1, 3, 0);

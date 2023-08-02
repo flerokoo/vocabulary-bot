@@ -7,7 +7,8 @@
     "start": "nodemon -x \"clear; ts-node\" index.ts",
     "tsc": "tsc -P tsconfig.json",
     "docker:build": "npm run tsc; docker image build .",
-    "docker:run": "docker run"
+    "docker:run": "docker run",
+    "docker:push": "docker push"
   },
   "keywords": [],
   "author": "",
