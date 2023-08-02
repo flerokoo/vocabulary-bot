@@ -2,15 +2,17 @@ import TelegramBot, { CallbackQuery, ChatId, InlineQuery, Message, SendMessageOp
 import { BotContext } from "./BotContext";
 import { Stream } from "stream";
 import { EventEmitter } from "events";
+import { AsyncGetter, createAsyncGetter } from "../utils/create-async-getter";
 
 export interface ContextConfigurator<T extends string, K> {
   (ctx: BotContext<T, K>, chatId: ChatId): void;
 }
 
+
 export class Bot<TStateKey extends string, TPayload> extends EventEmitter {
   private readonly tg: TelegramBot;
   private readonly contexts: {
-    [key: ChatId]: BotContext<TStateKey, TPayload>;
+    [key: ChatId]: AsyncGetter<BotContext<TStateKey, TPayload>>;
   } = {};
   private readonly contextConfigurator: ContextConfigurator<TStateKey, TPayload>;
 
@@ -34,14 +36,16 @@ export class Bot<TStateKey extends string, TPayload> extends EventEmitter {
   }
 
   private async createContext(chatId: ChatId) {
-    const context = new BotContext<TStateKey, TPayload>(this, chatId);
-    await this.contextConfigurator(context, chatId);
-    this.contexts[chatId] = context;
+    this.contexts[chatId] = createAsyncGetter(async () => {
+      const context = new BotContext<TStateKey, TPayload>(this, chatId);
+      await this.contextConfigurator(context, chatId);
+      return context;
+    });
   }
 
   private async getContext(chatId: ChatId) {
     if (!this.contexts[chatId]) await this.createContext(chatId);
-    return this.contexts[chatId];
+    return this.contexts[chatId].getValue();
   }
 
   sendMessage(chatId: ChatId, message: string, options?: SendMessageOptions): Promise<TelegramBot.Message> {
@@ -58,7 +62,7 @@ export class Bot<TStateKey extends string, TPayload> extends EventEmitter {
 
   editMessageReplyMarkup(
     replyMarkup: TelegramBot.InlineKeyboardMarkup,
-    options?: TelegramBot.EditMessageReplyMarkupOptions,
+    options?: TelegramBot.EditMessageReplyMarkupOptions
   ) {
     return this.safeCall(() => this.tg.editMessageReplyMarkup(replyMarkup, options));
   }
@@ -71,7 +75,7 @@ export class Bot<TStateKey extends string, TPayload> extends EventEmitter {
     chatId: TelegramBot.ChatId,
     doc: string | Stream | Buffer,
     options?: TelegramBot.SendDocumentOptions,
-    fileOptions?: TelegramBot.FileOptions,
+    fileOptions?: TelegramBot.FileOptions
   ) {
     return this.safeCall(() => this.tg.sendDocument(chatId, doc, options, fileOptions));
   }

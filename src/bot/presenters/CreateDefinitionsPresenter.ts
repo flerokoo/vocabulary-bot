@@ -70,7 +70,6 @@ export class CreateDefinitionsPresenter
       this.deps.logger.log(`Saved or updated word`, {userId, word})
       return [true, word.id as number];
     } catch (error) {
-      // todo logger
       this.deps.logger.error("create-def-presenter: saving word", error);
       return [false, -1];
     }
