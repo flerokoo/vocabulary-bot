@@ -1,8 +1,8 @@
 import { AbstractState } from "./AbstractState";
 import TelegramBot, { InlineKeyboardButton } from "node-telegram-bot-api";
-import { BotStateId } from "./BotStateId";
 import { CANCEL_QUERY_DATA } from "../common/query-data-constants";
-import { SelectLearnTagsStatePayload } from "./SelectLearnTagsState";
+import { SelectLearnTagsState} from "./SelectLearnTagsState";
+import { MainState } from "./MainState";
 
 export type SelectLearnModeStatePayload = void;
 
@@ -11,11 +11,7 @@ const MAIN_TEXT = `Select learn mode`;
 const LearnModeStrings = ["Words", "Definitions"] as const;
 export type LearnMode = (typeof LearnModeStrings)[number];
 
-export class SelectLearnModeState extends AbstractState<
-  BotStateId,
-  SelectLearnModeStatePayload,
-  SelectLearnTagsStatePayload
-> {
+export class SelectLearnModeState extends AbstractState<SelectLearnModeStatePayload> {
   private message!: TelegramBot.Message | undefined;
 
   constructor(userId: number) {
@@ -28,7 +24,7 @@ export class SelectLearnModeState extends AbstractState<
     inline_keyboard.push([{ text: "↩️ Cancel", callback_data: CANCEL_QUERY_DATA }]);
 
     this.message = await this.context.sendMessage(MAIN_TEXT, {
-      reply_markup: { inline_keyboard },
+      reply_markup: { inline_keyboard }
     });
   }
 
@@ -38,16 +34,18 @@ export class SelectLearnModeState extends AbstractState<
     this.message = undefined;
   }
 
-  async handleMessage() {}
+  async handleMessage() {
+  }
 
-  private handleCommand() {}
+  private handleCommand() {
+  }
 
   async handleCallbackQuery(query: TelegramBot.CallbackQuery) {
     if (query.data === CANCEL_QUERY_DATA) {
-      return this.context.setState("main");
+      return this.context.setState(MainState);
     }
 
     if (LearnModeStrings.indexOf(query.data as LearnMode) === -1) return;
-    this.context.setState("select-learn-tags", { mode: query.data as LearnMode });
+    this.context.setState(SelectLearnTagsState, { mode: query.data as LearnMode });
   }
 }

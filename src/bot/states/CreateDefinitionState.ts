@@ -9,6 +9,8 @@ import { AsyncQueue } from "../../utils/AsyncQueue";
 import { ILogger } from "../../utils/ILogger";
 import { CANCEL_QUERY_DATA, CONTINUE_QUERY_DATA } from "../common/query-data-constants";
 import { groupKeyboardButtons } from "../common/group-keyboard-buttons";
+import { AssignTagsState } from "./AssignTagsState";
+import { MainState } from "./MainState";
 
 export type CreateDefinitionStatePayload = {
   readonly word: string;
@@ -16,7 +18,7 @@ export type CreateDefinitionStatePayload = {
 };
 
 export class CreateDefinitionState
-  extends AbstractState<BotStateId, CreateDefinitionStatePayload, PayloadUnion>
+  extends AbstractState<CreateDefinitionStatePayload>
   implements ICreateDefinitionView
 {
   private mainView!: TelegramBot.Message | undefined;
@@ -53,14 +55,14 @@ export class CreateDefinitionState
     if (query.data === CONTINUE_QUERY_DATA) {
       const [success, wordId] = await this.presenter.onContinue();
       await answer(success ? "Moving on..." : "Some error occurred while saving");
-      if (success) this.context.setState("assign-tags", { wordId });
-      else this.context.setState("main");
+      if (success) this.context.setState(AssignTagsState, { wordId });
+      else this.context.setState(MainState);
       return;
     }
 
     if (query.data === CANCEL_QUERY_DATA) {
       await answer("Cancelled");
-      this.context.setState("main");
+      this.context.setState(MainState);
       return;
     }
 

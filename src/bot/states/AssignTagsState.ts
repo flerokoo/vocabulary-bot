@@ -2,7 +2,7 @@ import { AbstractState } from "./AbstractState";
 import TelegramBot, { InlineKeyboardButton } from "node-telegram-bot-api";
 import { BotStateId } from "./BotStateId";
 import { BotDependencies } from "../create-bot";
-import { MainStatePayload } from "./MainState";
+import { MainState, MainStatePayload } from "./MainState";
 import { AsyncQueue } from "../../utils/AsyncQueue";
 import { CANCEL_QUERY_DATA, CONTINUE_QUERY_DATA } from "../common/query-data-constants";
 import { groupKeyboardButtons } from "../common/group-keyboard-buttons";
@@ -13,7 +13,7 @@ import { AssignTagsStateModelData } from "../data/AssignTagsStateModel";
 export type AssignTagsStatePayload = { wordId: number };
 
 export class AssignTagsState
-  extends AbstractState<BotStateId, AssignTagsStatePayload, MainStatePayload>
+  extends AbstractState<AssignTagsStatePayload>
   implements IAssignStateView
 {
   private updateQueue = new AsyncQueue();
@@ -56,13 +56,13 @@ export class AssignTagsState
 
     if (query.data === CANCEL_QUERY_DATA) {
       await answer("Cancelling...");
-      return this.context.setState("main");
+      return this.context.setState(MainState);
     }
 
     if (query.data === CONTINUE_QUERY_DATA) {
       await answer("Moving on...");
       this.presenter.onSaveRequest();
-      return this.context.setState("main");
+      return this.context.setState(MainState);
     }
 
     await this.presenter.onToggleTagUsage(query.data as string);

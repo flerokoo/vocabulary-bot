@@ -3,28 +3,40 @@ import TelegramBot, { ChatId, SendMessageOptions } from "node-telegram-bot-api";
 import { Bot } from "./Bot";
 import { Stream } from "stream";
 
-export class BotContext<TStateKey extends string, TPayload> {
-  private states: { [key: string]: AbstractState<TStateKey, any, any> } = {};
-  private currentState!: AbstractState<TStateKey, any, any>;
+type Constructor<T> = new (...args: any[]) => T;
+type StateConstructor = Constructor<AbstractState<any>>
+type StatePayload<T extends AbstractState<any>> = T extends AbstractState<infer TPayload>
+  ? TPayload
+  : never;
+
+
+export class BotContext {
+  private states: Map<StateConstructor, AbstractState<any>> = new Map();
+  private currentState!: AbstractState<any>;
 
   constructor(
-    public readonly bot: Bot<TStateKey, TPayload>,
-    public readonly chatId: ChatId,
-  ) {}
+    public readonly bot: Bot,
+    public readonly chatId: ChatId
+  ) {
+  }
 
-  addState(id: TStateKey, state: AbstractState<TStateKey, TPayload, TPayload>) {
-    if (id in this.states) throw new Error(`State ${id} exists`);
-    this.states[id] = state;
+  addState(state: AbstractState<any>) {
+    const constructor = state.constructor as StateConstructor;
+    if (this.states.has(constructor))
+      throw new Error(`State already exists in this context ` + state.constructor.name);
+    this.states.set(constructor, state);
     state.context = this;
   }
 
-  setState(id: TStateKey, payload?: TPayload) {
+  setState<T extends AbstractState<any>>(stateType: Constructor<T>,
+                                         payload?: StatePayload<T>) {
     if (this.currentState) {
       this.currentState.exit();
     }
-
-    this.currentState = this.states[id];
-    this.currentState.enter(payload);
+    const state = this.states.get(stateType);
+    if (!state) throw new Error(`No state in this context: ` + stateType);
+    this.currentState = state;
+    state.enter(payload);
   }
 
   onMessage(msg: TelegramBot.Message) {
@@ -48,17 +60,17 @@ export class BotContext<TStateKey extends string, TPayload> {
   editMessageText(text: string, options?: TelegramBot.EditMessageTextOptions) {
     return this.bot.editMessageText(text, {
       ...options,
-      chat_id: this.chatId,
+      chat_id: this.chatId
     });
   }
 
   editMessageReplyMarkup(
     replyMarkup: TelegramBot.InlineKeyboardMarkup,
-    options?: TelegramBot.EditMessageReplyMarkupOptions,
+    options?: TelegramBot.EditMessageReplyMarkupOptions
   ) {
     return this.bot.editMessageReplyMarkup(replyMarkup, {
       ...options,
-      chat_id: this.chatId,
+      chat_id: this.chatId
     });
   }
 
@@ -69,14 +81,15 @@ export class BotContext<TStateKey extends string, TPayload> {
   sendDocument(
     doc: string | Stream | Buffer,
     options?: TelegramBot.SendDocumentOptions,
-    fileOptions?: TelegramBot.FileOptions,
+    fileOptions?: TelegramBot.FileOptions
   ) {
     return this.bot.sendDocument(this.chatId, doc, options, fileOptions);
   }
 
   dispose() {
-    for (const key of Object.keys(this.states)) {
-      this.states[key].dispose();
+    for (const state of this.states.values()) {
+      state.dispose();
     }
+
   }
 }

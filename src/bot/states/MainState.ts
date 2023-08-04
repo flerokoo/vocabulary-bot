@@ -1,11 +1,12 @@
 import { AbstractState } from "./AbstractState";
 import TelegramBot from "node-telegram-bot-api";
 import { sanitize } from "../../utils/sanitize";
-import { BotStateId } from "./BotStateId";
-import { CreateDefinitionStatePayload } from "./CreateDefinitionState";
+import { CreateDefinitionState} from "./CreateDefinitionState";
 import { BotDependencies } from "../create-bot";
 import { deleteWordOwnership } from "../../usecases/delete-word-ownership";
 import { getAllWordsByUser } from "../../usecases/get-all-words-by-user";
+import { SelectExportTagsState } from "./SelectExportTagsState";
+import { SelectLearnModeState } from "./SelectLearnModeState";
 
 export type MainStatePayload = void;
 
@@ -25,7 +26,7 @@ To edit word definitions just write it in the chat
 Contact author: @starina\\_biba
 `;
 
-export class MainState extends AbstractState<BotStateId, MainStatePayload, CreateDefinitionStatePayload> {
+export class MainState extends AbstractState<MainStatePayload> {
   // eslint-disable-next-line @typescript-eslint/ban-types
   commands: { [key: string]: Function } = {
     "/start": () =>
@@ -59,11 +60,11 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
         await this.context.sendMessage("Error occurred while removing word");
       }
     },
-    "/export": () => this.context.setState("select-export-tags"),
+    "/export": () => this.context.setState(SelectExportTagsState),
     "/learn": async () => {
       const word = await this.deps.defRepo.getRandomByUserId(this.userId);
       if (!word) return await this.context.sendMessage("Add some words first");
-      this.context.setState("select-learn-mode");
+      this.context.setState(SelectLearnModeState);
     },
   };
 
@@ -105,11 +106,11 @@ export class MainState extends AbstractState<BotStateId, MainStatePayload, Creat
   handleCallbackQuery(): void {}
 
   private defineWord(word: string) {
-    this.context.setState("create-definition", { word, isNewWord: false });
+    this.context.setState(CreateDefinitionState, { word, isNewWord: false });
   }
 
   private createAndDefineWord(word: string) {
-    this.context.setState("create-definition", { word, isNewWord: true });
+    this.context.setState(CreateDefinitionState, { word, isNewWord: true });
   }
 
   private get logger() {

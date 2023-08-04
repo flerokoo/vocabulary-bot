@@ -7,10 +7,11 @@ import { AsyncQueue } from "../../utils/AsyncQueue";
 import { LearnMode } from "./SelectLearnModeState";
 import { EXIT_QUERY_DATA, SHOW_ANSWER_QUERY_DATA, NEXT_PAGE_QUERY_DATA } from "../common/query-data-constants";
 import { ITag } from "../../entities/ITag";
+import { MainState } from "./MainState";
 
 export type LearnStatePayload = { mode: LearnMode; tags: ITag[] };
 
-export class LearnState extends AbstractState<BotStateId, LearnStatePayload, void> implements ILearnView {
+export class LearnState extends AbstractState<LearnStatePayload> implements ILearnView {
   private mainView!: TelegramBot.Message | undefined;
   private updateQueue: AsyncQueue = new AsyncQueue();
 
@@ -41,7 +42,7 @@ export class LearnState extends AbstractState<BotStateId, LearnStatePayload, voi
 
     if (query.data === EXIT_QUERY_DATA) {
       await answer("Good job");
-      return this.context.setState("main");
+      return this.context.setState(MainState);
     }
 
     if (query.data === NEXT_PAGE_QUERY_DATA) {
@@ -97,7 +98,7 @@ export class LearnState extends AbstractState<BotStateId, LearnStatePayload, voi
     this.updateQueue.clear();
     this.updateQueue.add(async () => {
       await this.context.sendMessage("No words found");
-      this.context.setState("main");
+      this.context.setState(MainState);
     });
   }
 }

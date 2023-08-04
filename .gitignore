@@ -358,3 +358,4 @@ dist
 /build/
 /start.sh
 /persist/
+/test.ts

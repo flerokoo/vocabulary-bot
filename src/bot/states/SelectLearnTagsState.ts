@@ -1,5 +1,5 @@
 import { LearnMode } from "./SelectLearnModeState";
-import { LearnStatePayload } from "./LearnState";
+import { LearnState, LearnStatePayload } from "./LearnState";
 import { ITagRepository } from "../../db/ITagRepository";
 import { PayloadConverter, SelectTagsState } from "./SelectTagsState";
 
@@ -12,6 +12,6 @@ export class SelectLearnTagsState extends SelectTagsState<SelectLearnTagsStatePa
       tags,
       mode,
     });
-    super(userId, mainText, tagRepo, "learn", handler);
+    super(userId, mainText, tagRepo, LearnState, handler);
   }
 }

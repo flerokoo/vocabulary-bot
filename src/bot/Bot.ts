@@ -4,19 +4,19 @@ import { Stream } from "stream";
 import { EventEmitter } from "events";
 import { AsyncGetter, createAsyncGetter } from "../utils/create-async-getter";
 
-export interface ContextConfigurator<T extends string, K> {
-  (ctx: BotContext<T, K>, chatId: ChatId): void;
+export interface ContextConfigurator {
+  (ctx: BotContext, chatId: ChatId): void;
 }
 
 
-export class Bot<TStateKey extends string, TPayload> extends EventEmitter {
+export class Bot extends EventEmitter {
   private readonly tg: TelegramBot;
   private readonly contexts: {
-    [key: ChatId]: AsyncGetter<BotContext<TStateKey, TPayload>>;
+    [key: ChatId]: AsyncGetter<BotContext>;
   } = {};
-  private readonly contextConfigurator: ContextConfigurator<TStateKey, TPayload>;
+  private readonly contextConfigurator: ContextConfigurator;
 
-  constructor(token: string, contextConfigurator: ContextConfigurator<TStateKey, TPayload>) {
+  constructor(token: string, contextConfigurator: ContextConfigurator) {
     super();
     this.tg = new TelegramBot(token, { polling: true });
     this.tg.on("message", (msg) => this.onMessage(msg));
@@ -37,7 +37,7 @@ export class Bot<TStateKey extends string, TPayload> extends EventEmitter {
 
   private async createContext(chatId: ChatId) {
     this.contexts[chatId] = createAsyncGetter(async () => {
-      const context = new BotContext<TStateKey, TPayload>(this, chatId);
+      const context = new BotContext(this, chatId);
       await this.contextConfigurator(context, chatId);
       return context;
     });

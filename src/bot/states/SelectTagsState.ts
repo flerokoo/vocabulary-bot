@@ -7,14 +7,11 @@ import { groupKeyboardButtons } from "../common/group-keyboard-buttons";
 import { ITag } from "../../entities/ITag";
 import { AsyncQueue } from "../../utils/AsyncQueue";
 import { SelectLearnTagsStatePayload } from "./SelectLearnTagsState";
+import { MainState } from "./MainState";
 
 export type PayloadConverter<TInput, TOutput> = (input: TInput, tags: ITag[]) => TOutput;
 
-export class SelectTagsState<TIncomingPayload, TOutgoingPayload> extends AbstractState<
-  BotStateId,
-  TIncomingPayload,
-  TOutgoingPayload
-> {
+export class SelectTagsState<TIncomingPayload, TOutgoingPayload> extends AbstractState<TIncomingPayload> {
   private message!: TelegramBot.Message | undefined;
   private usedTags: ITag[] = [];
   private tags!: ITag[];
@@ -25,8 +22,8 @@ export class SelectTagsState<TIncomingPayload, TOutgoingPayload> extends Abstrac
     userId: number,
     private mainText: string,
     private tagRepo: ITagRepository,
-    private nextState: BotStateId,
-    private payloadConverter: PayloadConverter<TIncomingPayload, TOutgoingPayload>,
+    private nextState: new (...args: any) => AbstractState<TOutgoingPayload>,
+    private payloadConverter: PayloadConverter<TIncomingPayload, TOutgoingPayload>
   ) {
     super(userId);
   }
@@ -46,8 +43,8 @@ export class SelectTagsState<TIncomingPayload, TOutgoingPayload> extends Abstrac
     const inline_keyboard: InlineKeyboardButton[][] = groupKeyboardButtons(
       this.tags.map(({ tag }) => ({
         text: `${isUsed(tag) ? "✅" : "❌"} ${tag}`,
-        callback_data: tag,
-      })),
+        callback_data: tag
+      }))
     );
 
     if (this.usedTags.length > 0) inline_keyboard.push([{ text: "➡️ Continue", callback_data: CONTINUE_QUERY_DATA }]);
@@ -56,7 +53,7 @@ export class SelectTagsState<TIncomingPayload, TOutgoingPayload> extends Abstrac
     this.updateQueue.add(async () => {
       await this.context.editMessageText(this.mainText, {
         message_id: this.message!.message_id,
-        reply_markup: { inline_keyboard },
+        reply_markup: { inline_keyboard }
       });
     });
   }
@@ -71,19 +68,21 @@ export class SelectTagsState<TIncomingPayload, TOutgoingPayload> extends Abstrac
     });
   }
 
-  async handleMessage() {}
+  async handleMessage() {
+  }
 
-  private handleCommand() {}
+  private handleCommand() {
+  }
 
   async handleCallbackQuery(query: TelegramBot.CallbackQuery) {
     if (query.data === CANCEL_QUERY_DATA) {
-      return this.context.setState("main");
+      return this.context.setState(MainState);
     }
 
     if (query.data === CONTINUE_QUERY_DATA) {
       return this.context.setState(
         this.nextState,
-        this.payloadConverter(this.lastPayload as TIncomingPayload, this.usedTags),
+        this.payloadConverter(this.lastPayload as TIncomingPayload, this.usedTags)
       );
     }
 

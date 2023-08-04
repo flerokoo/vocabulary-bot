@@ -1,12 +1,12 @@
 import TelegramBot from "node-telegram-bot-api";
 import { BotContext } from "../BotContext";
 
-export abstract class AbstractState<TStateKey extends string, TIncomingPayload, TOutgoingPayload> {
-  context!: BotContext<TStateKey, TOutgoingPayload>;
+export abstract class AbstractState<TPayload> {
+  context!: BotContext;
 
   protected constructor(protected readonly userId: number) {}
 
-  abstract enter(payload: TIncomingPayload): void;
+  abstract enter(payload: TPayload): void;
 
   abstract handleMessage(message: TelegramBot.Message): void;
 

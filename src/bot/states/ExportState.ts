@@ -1,6 +1,6 @@
 import { AbstractState } from "./AbstractState";
 import { BotStateId } from "./BotStateId";
-import { MainStatePayload } from "./MainState";
+import { MainState, MainStatePayload } from "./MainState";
 import TelegramBot, { InlineKeyboardButton } from "node-telegram-bot-api";
 import { IDataExporter } from "../../export/IDataExporter";
 import { BotDependencies } from "../create-bot";
@@ -12,7 +12,7 @@ import { CANCEL_QUERY_DATA } from "../common/query-data-constants";
 
 export type ExportStatePayload = { tags: ITag[] | undefined };
 
-export class ExportState extends AbstractState<BotStateId, ExportStatePayload, MainStatePayload> {
+export class ExportState extends AbstractState<ExportStatePayload> {
   exporters: { [key: string]: IDataExporter } = {
     "Anki Deck": exportAnkiDeck,
     JSON: exportJson,
@@ -31,7 +31,7 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
   async enter(payload: ExportStatePayload) {
     if (payload.tags?.length === 0) {
       this.deps.logger.warn("No tags given to export");
-      this.context.setState("main");
+      this.context.setState(MainState);
       return;
     }
     this.tags = payload.tags;
@@ -57,7 +57,7 @@ export class ExportState extends AbstractState<BotStateId, ExportStatePayload, M
 
     const bail = async (text: string) => {
       await answer(text);
-      this.context.setState("main");
+      this.context.setState(MainState);
     };
 
     if (query.data === CANCEL_QUERY_DATA || query.data === undefined) {
