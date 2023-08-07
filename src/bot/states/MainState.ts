@@ -1,12 +1,13 @@
 import { AbstractState } from "./AbstractState";
 import TelegramBot from "node-telegram-bot-api";
 import { sanitize } from "../../utils/sanitize";
-import { CreateDefinitionState} from "./CreateDefinitionState";
+import { CreateDefinitionState } from "./CreateDefinitionState";
 import { BotDependencies } from "../create-bot";
 import { deleteWordOwnership } from "../../usecases/delete-word-ownership";
 import { getAllWordsByUser } from "../../usecases/get-all-words-by-user";
 import { SelectExportTagsState } from "./SelectExportTagsState";
 import { SelectLearnModeState } from "./SelectLearnModeState";
+import { SelectListTagsState } from "./SelectListTagsState";
 
 export type MainStatePayload = void;
 
@@ -32,25 +33,15 @@ export class MainState extends AbstractState<MainStatePayload> {
     "/start": () =>
       this.context.sendMessage(HELP_MESSAGE, {
         parse_mode: "Markdown",
-        disable_web_page_preview: true,
+        disable_web_page_preview: true
       }),
     "/help": () =>
       this.context.sendMessage(HELP_MESSAGE, {
         parse_mode: "Markdown",
-        disable_web_page_preview: true,
+        disable_web_page_preview: true
       }),
-    "/list": async () => {
-      let msg: string;
-      try {
-        const header = "*List of your saved words:* \n";
-        const words = await getAllWordsByUser(this.userId, this.deps.wordRepo);
-        msg = words.length === 0 ? "No saved words found" : header + words.map((w) => w.word).join("\n");
-      } catch (error) {
-        this.logger.error(error);
-        msg = "Error occurred while listing words";
-      }
-      await this.context.sendMessage(msg, { parse_mode: "Markdown" });
-    },
+    "/list": async () =>
+      this.context.setState(SelectListTagsState),
     "/remove": async (word: string) => {
       try {
         await deleteWordOwnership(this.userId, { word }, this.deps.wordRepo);
@@ -65,22 +56,24 @@ export class MainState extends AbstractState<MainStatePayload> {
       const word = await this.deps.defRepo.getRandomByUserId(this.userId);
       if (!word) return await this.context.sendMessage("Add some words first");
       this.context.setState(SelectLearnModeState);
-    },
+    }
   };
 
   constructor(
     userId: number,
-    private deps: BotDependencies,
+    private deps: BotDependencies
   ) {
     super(userId);
   }
 
-  enter() {}
+  enter() {
+  }
 
-  exit() {}
+  exit() {
+  }
 
   async handleMessage(message: TelegramBot.Message) {
-    if (!message.text) return;
+    if (!message.text || message.chat.id < 0) return;// this bot is not for groups
     if (message.text?.startsWith("/") && message.text.length > 1) {
       this.handleCommand(message);
       return;
@@ -96,6 +89,7 @@ export class MainState extends AbstractState<MainStatePayload> {
   }
 
   private handleCommand(message: TelegramBot.Message) {
+    if (message.chat.id < 0) return; // this bot is not for groups
     const text = message!.text as string;
     const [command_, ...args] = text.replace(/\s+/g, " ").split(" ");
     const command = command_.toLowerCase();
@@ -103,7 +97,8 @@ export class MainState extends AbstractState<MainStatePayload> {
     this.commands[command](...args);
   }
 
-  handleCallbackQuery(): void {}
+  handleCallbackQuery(): void {
+  }
 
   private defineWord(word: string) {
     this.context.setState(CreateDefinitionState, { word, isNewWord: false });

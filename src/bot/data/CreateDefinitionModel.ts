@@ -11,9 +11,18 @@ export type CreateDefinitionModelData = {
   meanings: CreateDefinitionStateMeaning[];
   word: SanitizedWordString;
   userId: number;
+  page: number;
+  defsPerPage: number
 };
 
 export class CreateDefinitionModel extends DataHolder<CreateDefinitionModelData> {
+
+  constructor(data: CreateDefinitionModelData, private definitionsPerPage : number = 12) {
+    data.page ||= 0;
+    data.defsPerPage = definitionsPerPage;
+    super(data);
+  }
+
   setDefinitions(meanings: IMeaning[] | CreateDefinitionStateMeaning[]) {
     const newMeanings = meanings.map((m) => ({
       selected: false,
@@ -46,6 +55,28 @@ export class CreateDefinitionModel extends DataHolder<CreateDefinitionModelData>
   }
 
   cleanup() {
-    this.setState({} as CreateDefinitionModelData);
+    this.setState({ page: 0, defsPerPage: this.definitionsPerPage } as CreateDefinitionModelData);
+  }
+
+  get totalPages() {
+    return Math.ceil(this.data.meanings.length / this.data.defsPerPage);
+  }
+
+  get currentPage() {
+    return isNaN(Number(this.data.page)) ? 0 : this.data.page;
+  }
+
+  get isLastPage() {
+    return this.currentPage === this.totalPages - 1;
+  }
+
+  get isFirstPage() {
+    return this.currentPage == 0
+  }
+
+  advancePage(n : number) {
+    const newPage = Math.max(0, Math.min(this.totalPages - 1, this.currentPage + n));
+    if (newPage !== this.data.page)
+      this.setState({ ...this.data, page: newPage });
   }
 }

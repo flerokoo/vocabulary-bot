@@ -7,7 +7,6 @@ import { AbstractPresenter } from "./AbstractPresenter";
 import { addWordWithOwner } from "../../usecases/add-word-with-owner";
 import { addDefinitionsWithOwner } from "../../usecases/add-definitions-with-owner";
 import { deleteDefinitionsOwnership } from "../../usecases/delete-definitions-ownership";
-import { IWord } from "../../entities/IWord";
 import { SanitizedWordString } from "../../utils/sanitize";
 import { IMeaning } from "../../entities/IMeaning";
 
@@ -20,7 +19,8 @@ export class CreateDefinitionsPresenter
   ) {
     super();
     model.subscribe((data) => {
-      if (data?.meanings && this.view) this.view.showDefinitions(data.meanings);
+      if (data?.meanings && this.view)
+        this.view.showDefinitions(data.meanings, model.currentPage, model.totalPages, data.defsPerPage);
     });
   }
 
@@ -97,6 +97,14 @@ export class CreateDefinitionsPresenter
       this.deps.logger.error("create-def-presenter: saving word", error);
       return [false, -1];
     }
+  }
+
+  onNextPageRequested() {
+    this.model.advancePage(1);
+  }
+
+  onPrevPageRequested() {
+    this.model.advancePage(-1);
   }
 }
 

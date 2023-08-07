@@ -22,6 +22,8 @@ import { AssignTagsStateModel, AssignTagsStateModelData } from "./data/AssignTag
 import { AssignTagsPresenter } from "./presenters/AssignTagsPresenter";
 import { SelectLearnTagsState, SelectLearnTagsStatePayload } from "./states/SelectLearnTagsState";
 import { SelectExportTagsState, SelectExportTagsStatePayload } from "./states/SelectExportTagsState";
+import { SelectListTagsState } from "./states/SelectListTagsState";
+import { ListState } from "./states/ListState";
 
 export type PayloadUnion =
   | CreateDefinitionStatePayload
@@ -73,6 +75,8 @@ const getContextConfigurator =
     context.addState(new MainState(user.id, dependencies));
     context.addState(new ExportState(user.id, dependencies));
     context.addState(new SelectExportTagsState(user.id, dependencies.tagRepo));
+    context.addState(new SelectListTagsState(user.id, dependencies.tagRepo));
+    context.addState(new ListState(user.id, dependencies));
 
     // set initial state
     context.setState(MainState);

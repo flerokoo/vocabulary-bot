@@ -1,7 +1,7 @@
 {
-  "name": "anki-words",
+  "name": "Vocabot",
   "version": "1.0.0",
-  "description": "",
+  "description": "This bot helps to improve vocabulary",
   "main": "index.js",
   "scripts": {
     "start": "nodemon -x \"clear; ts-node\" index.ts",
@@ -10,8 +10,8 @@
     "docker:run": "docker run",
     "docker:push": "docker push"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["telegram", "bot", "vocabulary", "learning"],
+  "author": "Emile Shodiev",
   "license": "ISC",
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.4",

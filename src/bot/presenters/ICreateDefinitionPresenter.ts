@@ -10,4 +10,8 @@ export interface ICreateDefinitionPresenter {
   reset(): void;
 
   onContinue(): Promise<[boolean, number]>;
+
+  onNextPageRequested(): void;
+
+  onPrevPageRequested(): void;
 }

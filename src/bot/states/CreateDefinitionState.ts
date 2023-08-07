@@ -7,10 +7,16 @@ import { ICreateDefinitionView } from "../views/ICreateDefinitionView";
 import { CreateDefinitionStateMeaning } from "../data/CreateDefinitionModel";
 import { AsyncQueue } from "../../utils/AsyncQueue";
 import { ILogger } from "../../utils/ILogger";
-import { CANCEL_QUERY_DATA, CONTINUE_QUERY_DATA } from "../common/query-data-constants";
+import {
+  CANCEL_QUERY_DATA,
+  CONTINUE_QUERY_DATA,
+  NEXT_PAGE_QUERY_DATA,
+  PREV_PAGE_QUERY_DATA
+} from "../common/query-data-constants";
 import { groupKeyboardButtons } from "../common/group-keyboard-buttons";
 import { AssignTagsState } from "./AssignTagsState";
 import { MainState } from "./MainState";
+import { IMeaning } from "../../entities/IMeaning";
 
 export type CreateDefinitionStatePayload = {
   readonly word: string;
@@ -19,15 +25,14 @@ export type CreateDefinitionStatePayload = {
 
 export class CreateDefinitionState
   extends AbstractState<CreateDefinitionStatePayload>
-  implements ICreateDefinitionView
-{
+  implements ICreateDefinitionView {
   private mainView!: TelegramBot.Message | undefined;
   private updateQueue: AsyncQueue = new AsyncQueue();
 
   constructor(
     userId: number,
     private presenter: ICreateDefinitionPresenter,
-    private logger: ILogger,
+    private logger: ILogger
   ) {
     super(userId);
   }
@@ -66,38 +71,65 @@ export class CreateDefinitionState
       return;
     }
 
+    if (query.data === NEXT_PAGE_QUERY_DATA) {
+      await answer("Next page");
+      this.presenter.onNextPageRequested();
+      return;
+    }
+
+    if (query.data === PREV_PAGE_QUERY_DATA) {
+      await answer("Prev page");
+      this.presenter.onPrevPageRequested();
+      return;
+    }
+
     this.presenter.toggleDefinitionUsage(query.data);
     await answer("Toggled");
   }
 
-  async showDefinitions(meanings: CreateDefinitionStateMeaning[]) {
-    const { message, reply_markup } = this.formatMessage(meanings);
+  async showDefinitions(meanings: CreateDefinitionStateMeaning[], currentPage: number, totalPages: number, defsPerPage: number): Promise<void> {
+    const { message, reply_markup } = this.formatMessage(meanings, currentPage, totalPages, defsPerPage);
     this.updateQueue.add(async () => {
       await this.context.editMessageText(message, {
         message_id: this.mainView!.message_id,
         parse_mode: "Markdown",
-        reply_markup,
+        reply_markup
       });
     });
   }
 
   private formatMessage(
     meanings: CreateDefinitionStateMeaning[],
-    buttonsPerRow = 3,
-  ): { message: string; reply_markup: InlineKeyboardMarkup } {
+    currentPage: number,
+    totalPages: number,
+    defsPerPage: number): { message: string; reply_markup: TelegramBot.InlineKeyboardMarkup } {
     const header = `*Here's a list of available definitions. \nWrite a message(s) to add new definition(s) manually* \n\n`;
     const header0 = `*No definitions found on the internet. Write a message to add new definition*`;
-    const messages = meanings.map((m, i) => `${i + 1}) ${m.selected ? "✅" : ""} ${m.definition}`);
+    const pageMeanings = meanings.slice(currentPage * defsPerPage, (currentPage + 1) * defsPerPage);
+    const indexOffset = currentPage * defsPerPage;
+    const messages = pageMeanings.map((m, i) =>
+      `${i + indexOffset + 1}) ${m.selected ? "✅" : ""} ${m.definition}`);
     const message = (meanings.length > 0 ? header : header0) + messages.join("\n\n");
     const buttons: InlineKeyboardButton[] = [];
-    for (let i = 0; i < meanings.length; i++) {
+    for (let i = 0; i < pageMeanings.length; i++) {
       buttons.push({
-        text: `${meanings[i].selected ? "✅" : "❌"} ${i + 1}`,
-        callback_data: i.toString(),
+        text: `${pageMeanings[i].selected ? "✅" : "❌"} ${i + indexOffset + 1}`,
+        callback_data: (i + indexOffset).toString()
       });
     }
 
+    const buttonsPerRow = 3;
     const inline_keyboard = groupKeyboardButtons(buttons, buttonsPerRow);
+
+    if (totalPages > 1) {
+      const pageButtons : InlineKeyboardButton[] = [];
+      if (currentPage > 0)
+        pageButtons.push({ text: "Prev page", callback_data: PREV_PAGE_QUERY_DATA});
+      if (currentPage < totalPages - 1)
+        pageButtons.push({ text: "Next page", callback_data: NEXT_PAGE_QUERY_DATA});
+      inline_keyboard.push(pageButtons);
+    }
+
 
     // add continue button if some of the definitions selected
     if (meanings.some((m) => m.selected))
