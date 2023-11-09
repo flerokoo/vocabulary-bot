@@ -1,6 +1,8 @@
 TODO.txt
 persist/db.sqlite
 dbtest/
+.DS_Store
+**/.DS_Store
 
 # Created by https://www.toptal.com/developers/gitignore/api/node,webstorm,visualstudiocode,intellij
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,webstorm,visualstudiocode,intellij
@@ -359,3 +361,7 @@ dist
 /start.sh
 /persist/
 /test.ts
+.idea/dataSources.xml
+.gitignore
+src/.DS_Store
+.idea/sqldialects.xml
